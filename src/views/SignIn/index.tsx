@@ -129,7 +129,7 @@ export function SignIn() {
             <Stack h="100%" align='center' justify='center' gap='xs' pb='sm' miw={240}>
               <Logo size={75} />
               <Stack gap={0} align='center' mb='sm'>
-                <Title order={2}>BioCollect</Title>
+                <Title order={2}>LookAround</Title>
                 <Text size='sm' c='dimmed'>
                   Citizen Science Projects
                 </Text>

@@ -91,8 +91,8 @@ const pwaOptions: Partial<VitePWAOptions> = {
   },
   includeAssets: ['**/*.{png,woff,woff2,css}'], // Use glob pattern instead
   manifest: {
-    name: 'BioCollect',
-    short_name: 'BioCollect',
+    name: 'LookAround',
+    short_name: 'LookAround',
     theme_color: '#e13535',
     background_color: '#212120',
     icons: [

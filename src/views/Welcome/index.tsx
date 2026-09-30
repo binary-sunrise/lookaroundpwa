@@ -26,10 +26,10 @@ function WelcomeDetails() {
   return (
     <Stack align='center' miw={275} p='xl' style={{ textAlign: 'center' }}>
       <Logo size={72} />
-      <Title order={2}>Welcome to BioCollect</Title>
+      <Title order={2}>Welcome to LookAround</Title>
       <Stack align='center'>
         <Text size='sm' c='dimmed'>
-          Welcome to the web-based BioCollect mobile app
+          Welcome to the LookAround mobile app
         </Text>
       </Stack>
       <Card px='md' pt='xs' pb='lg' my='xl' style={{ textAlign: 'left' }} radius='xl' withBorder>
