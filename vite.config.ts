@@ -35,6 +35,51 @@ const getCache = ({
   },
 });
 
+// const pwaOptions: Partial<VitePWAOptions> = {
+//   workbox: {
+//     runtimeCaching: [
+//       getCache({
+//         urlPattern: /^https:\/\/biocollect(-dev|-test|-)*.ala.org.au\/document/,
+//         cacheName: 'biocollect-documents',
+//       }),
+//     ],
+//   },
+//   includeAssets: ['index.css', 'icon/*.png', 'fonts/*.woff', 'fonts/*.woff2', 'assets/*.png'],
+//   manifest: {
+//     name: 'BioCollect',
+//     short_name: 'BioCollect',
+//     theme_color: '#e13535',
+//     background_color: '#212120',
+//     icons: [
+//       {
+//         src: 'icon/192x192.png',
+//         sizes: '192x192',
+//         type: 'image/png',
+//       },
+//       {
+//         src: 'icon/256x256.png',
+//         sizes: '256x256',
+//         type: 'image/png',
+//       },
+//       {
+//         src: 'icon/384x384.png',
+//         sizes: '384x384',
+//         type: 'image/png',
+//       },
+//       {
+//         src: 'icon/512x512.png',
+//         sizes: '512x512',
+//         type: 'image/png',
+//       },
+//     ],
+//   },
+//   registerType: 'autoUpdate',
+//   injectRegister: 'auto',
+//   devOptions: {
+//     enabled: false,
+//   },
+// };
+
 const pwaOptions: Partial<VitePWAOptions> = {
   workbox: {
     runtimeCaching: [
@@ -44,7 +89,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
       }),
     ],
   },
-  includeAssets: ['index.css', 'icon/*.png', 'fonts/*.woff', 'fonts/*.woff2', 'assets/*.png'],
+  includeAssets: ['**/*.{png,woff,woff2,css}'], // Use glob pattern instead
   manifest: {
     name: 'BioCollect',
     short_name: 'BioCollect',
@@ -79,6 +124,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
     enabled: false,
   },
 };
+
 
 const mockPwaPlugin = {
   name: 'mock-pwa-routes',
