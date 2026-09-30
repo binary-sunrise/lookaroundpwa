@@ -40,7 +40,7 @@ function HomeLoading({ max }: { max: number }) {
   return range(max).map((id) => <ProjectItem key={id} project={null} />);
 }
 
-function areProjectsDifferent(
+function _areProjectsDifferent(
   old: BioCollectProjectSearch | null,
   updated: BioCollectProjectSearch,
 ) {

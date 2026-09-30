@@ -1,5 +1,5 @@
 import { Frame } from '#/components';
-import { isFrame } from '#/helpers/funcs';
+import { getBioCollectTargetOrigin, isFrame } from '#/helpers/funcs';
 import { Box, Button, Group, Modal, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { jwtDecode } from 'jwt-decode';
@@ -19,7 +19,7 @@ import FrameContext, { type FrameCallbacks } from './context';
 import { modals } from '@mantine/modals';
 
 interface FrameEvent {
-  event: 'download-complete' | 'download-removed' | 'surveys-removed' | 'close-frame';
+  event: 'download-complete' | 'confirm-download' | 'download-removed' | 'surveys-removed' | 'close-frame';
 }
 
 const FrameProvider = (props: PropsWithChildren): ReactElement => {
@@ -47,7 +47,7 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
             token: user?.access_token,
           },
         },
-        import.meta.env.VITE_API_BIOCOLLECT,
+        getBioCollectTargetOrigin(),
       );
     }
   }, []);
@@ -91,13 +91,18 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
     const messageHandler = (message: MessageEvent<FrameEvent>) => {
       const { data } = message;
 
-      if (data.event === 'download-complete') {
+      if (data?.event === 'download-complete') {
         setCanConfirm(true);
-      } else if (data.event === 'download-removed') {
+      } else if (data?.event === 'confirm-download') {
+        setCanConfirm(true);
+        if (callbacks.current?.confirm) {
+          callbacks.current.confirm();
+        }
+      } else if (data?.event === 'download-removed') {
         setCanConfirm(false);
-      } else if (data.event === 'surveys-removed') {
+      } else if (data?.event === 'surveys-removed') {
         dexie.cached.clear();
-      } else if (data.event === 'close-frame') {
+      } else if (data?.event === 'close-frame') {
         handleClose();
       }
     };

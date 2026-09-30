@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Record - BioCollect</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #141517;
+      color: #C1C2C5;
+      margin: 0;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #25262B;
+      border: 1px solid #373A40;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    h2 {
+      margin: 0 0 6px;
+      color: #FFFFFF;
+      font-size: 22px;
+    }
+    .subtitle {
+      margin: 0 0 24px;
+      font-size: 14px;
+      color: #909296;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #E4E5E7;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: #2C2E33;
+      border: 1px solid #373A40;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #FFFFFF;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #E13535;
+    }
+    .row {
+      display: flex;
+      gap: 16px;
+    }
+    .row .form-group {
+      flex: 1;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .btn-primary {
+      background: #E13535;
+      color: #FFFFFF;
+    }
+    .btn-secondary {
+      background: #373A40;
+      color: #C1C2C5;
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      background: rgba(225, 53, 53, 0.15);
+      color: #FA5252;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="pill" id="surveyPill">Offline Observation Form</div>
+    <h2 id="formTitle">New Biodiversity Observation</h2>
+    <p class="subtitle" id="formSubtitle">Record sightings directly on your device. Works completely offline without mobile reception.</p>
+
+    <form id="recordForm">
+      <div class="form-group">
+        <label for="speciesName">Common Name or Species</label>
+        <input type="text" id="speciesName" placeholder="e.g., Crimson Rosella / Platycercus elegans" required value="Sulphur-crested Cockatoo">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="individualCount">Count / Abundance</label>
+          <input type="number" id="individualCount" min="1" value="1" required>
+        </div>
+        <div class="form-group">
+          <label for="surveyDate">Observation Date</label>
+          <input type="date" id="surveyDate" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="latitude">Latitude</label>
+          <input type="text" id="latitude" value="-33.8688">
+        </div>
+        <div class="form-group">
+          <label for="longitude">Longitude</label>
+          <input type="text" id="longitude" value="151.2093">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Habitat & Behavioral Notes</label>
+        <textarea id="notes" rows="3" placeholder="Observed in field area, healthy condition."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn-primary" id="saveBtn">Save Record Offline</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pathParts = window.location.pathname.split('/');
+      const editIndex = pathParts.indexOf('edit');
+      const viewIndex = pathParts.indexOf('view');
+      const paIndex = editIndex !== -1 ? editIndex : viewIndex;
+      const pathPaId = (paIndex !== -1 && pathParts[paIndex + 1]) ? pathParts[paIndex + 1].split('?')[0] : '';
+
+      const projectActivityId = urlParams.get('projectActivityId') || pathPaId || 'pa-001';
+      const projectId = urlParams.get('projectId') || 'proj-gsb-01';
+      const surveyName = urlParams.get('surveyName') || 'Field Survey';
+      const existingActivityId = urlParams.get('activityId');
+      const isViewOnly = viewIndex !== -1;
+
+      // Update UI title and pill
+      const pill = document.getElementById('surveyPill');
+      const title = document.getElementById('formTitle');
+      const subtitle = document.getElementById('formSubtitle');
+      const saveBtn = document.getElementById('saveBtn');
+
+      pill.textContent = 'Survey: ' + surveyName;
+      if (isViewOnly) {
+        title.textContent = 'View Observation Record';
+        subtitle.textContent = 'Viewing cached observation data.';
+        saveBtn.style.display = 'none';
+      } else if (existingActivityId) {
+        title.textContent = 'Edit Observation Record';
+        subtitle.textContent = 'Modify your offline observation before uploading.';
+        saveBtn.textContent = 'Update Offline Record';
+      }
+
+      // Pre-fill today's date
+      const dateInput = document.getElementById('surveyDate');
+      dateInput.value = new Date().toISOString().split('T')[0];
+
+      // If existing activity, pre-populate
+      let existingRecord = null;
+      try {
+        const raw = localStorage.getItem('biocollect_mock_offline_activities');
+        if (raw) {
+          const list = JSON.parse(raw);
+          existingRecord = list.find(function(item) {
+            return item.activityId === existingActivityId || (isViewOnly && item.activityId === pathPaId);
+          });
+          if (existingRecord) {
+            if (existingRecord.species && existingRecord.species[0]) {
+              document.getElementById('speciesName').value = existingRecord.species[0].commonName || existingRecord.species[0].name;
+            } else if (existingRecord.name) {
+              document.getElementById('speciesName').value = existingRecord.name;
+            }
+            if (existingRecord.surveyDate) {
+              dateInput.value = new Date(existingRecord.surveyDate).toISOString().split('T')[0];
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load existing activity:', e);
+      }
+
+      // Cancel button
+      document.getElementById('cancelBtn').addEventListener('click', function() {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ event: 'close-frame' }, '*');
+        }
+      });
+
+      // Form submission
+      document.getElementById('recordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (isViewOnly) {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ event: 'close-frame' }, '*');
+          }
+          return;
+        }
+
+        const speciesName = document.getElementById('speciesName').value.trim();
+        const count = parseInt(document.getElementById('individualCount').value, 10) || 1;
+        const date = document.getElementById('surveyDate').value;
+        const notes = document.getElementById('notes').value.trim();
+        const actId = existingActivityId || ('offline-act-' + Date.now());
+
+        const newActivity = {
+          activityId: actId,
+          isInvalidDraft: false,
+          uploadFlag: true,
+          name: speciesName + (count > 1 ? ' (' + count + ')' : ''),
+          projectActivityId: projectActivityId,
+          projectId: projectId,
+          surveyDate: new Date(date).toISOString(),
+          type: surveyName || 'BioBlitz Observation Form',
+          featureImage: {
+            thumbnailUrl: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=300&auto=format&fit=crop&q=80'
+          },
+          species: [
+            {
+              name: speciesName,
+              commonName: speciesName,
+              scientificName: speciesName,
+              outputSpeciesId: 'sp-' + Date.now(),
+              guid: ''
+            }
+          ],
+          transients: {
+            viewActivityUrl: '/pwa/bioActivity/view/' + actId,
+            editActivityUrl: '/pwa/bioActivity/edit/' + projectActivityId + '?activityId=' + actId
+          }
+        };
+
+        // Save to localStorage
+        try {
+          const raw = localStorage.getItem('biocollect_mock_offline_activities');
+          let list = raw ? JSON.parse(raw) : [];
+          if (existingActivityId) {
+            list = list.map(function(item) {
+              return item.activityId === existingActivityId ? Object.assign({}, item, newActivity) : item;
+            });
+          } else {
+            list.unshift(newActivity);
+          }
+          localStorage.setItem('biocollect_mock_offline_activities', JSON.stringify(list));
+        } catch (err) {
+          console.error('Failed to save offline activity:', err);
+        }
+
+        // Close the modal frame & open unpublished drawer in parent
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ event: 'close-frame', data: { newActivity: newActivity } }, '*');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

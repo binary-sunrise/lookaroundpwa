@@ -27,7 +27,7 @@ import { useAuth } from 'react-oidc-context';
 import { Link } from 'react-router';
 
 import { FrameContext } from '#/helpers/frame';
-import { getInitials, useOnLine } from '#/helpers/funcs';
+import { getBioCollectUrl, getInitials, useOnLine } from '#/helpers/funcs';
 
 import classes from './Header.module.css';
 
@@ -101,7 +101,7 @@ export function Header() {
               <Menu.Item
                 onClick={() =>
                   frame.open(
-                    `${import.meta.env.VITE_API_BIOCOLLECT}/pwa/settings`,
+                    getBioCollectUrl('/pwa/settings'),
                     'Manage Storage',
                   )
                 }

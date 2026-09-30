@@ -98,7 +98,7 @@ export default function Routes() {
         },
       ],
       {
-        basename: '/mobile-app',
+        basename: (import.meta.env.BASE_URL || '/lookaroundpwa').replace(/\/$/, '') || '/',
       },
     ),
   );

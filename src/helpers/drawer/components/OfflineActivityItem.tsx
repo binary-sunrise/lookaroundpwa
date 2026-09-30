@@ -12,7 +12,7 @@ import {
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { FrameContext } from '#/helpers/frame';
-import { useOnLine } from '#/helpers/funcs';
+import { getBioCollectUrl, useOnLine } from '#/helpers/funcs';
 import type { BioCollectOfflineActivitySummary } from '#/types';
 
 import { RecordCard } from './RecordCard';
@@ -146,7 +146,7 @@ export function OfflineActivityItem({
                   return;
                 }
                 frame.open(
-                  `${import.meta.env.VITE_API_BIOCOLLECT}${activity.transients.viewActivityUrl}`,
+                  getBioCollectUrl(activity.transients.viewActivityUrl),
                   'View Record',
                 );
               }}
@@ -168,7 +168,7 @@ export function OfflineActivityItem({
                   return;
                 }
                 frame.open(
-                  `${import.meta.env.VITE_API_BIOCOLLECT}${activity.transients.editActivityUrl}`,
+                  getBioCollectUrl(activity.transients.editActivityUrl),
                   'Edit Record',
                   {
                     close: onRefresh,

@@ -16,7 +16,15 @@ interface SurveyCardProps {
 
 export function SurveyCard({ survey, unpublishedCount }: SurveyCardProps) {
   const onLine = useOnLine();
-  const downloaded = Boolean(useLiveQuery(async () => await dexie.cached.get(survey?.id || '')));
+  const downloaded = Boolean(
+    useLiveQuery(async () => {
+      if (!survey?.id) return false;
+      const direct = await dexie.cached.get(survey.id);
+      if (direct) return true;
+      const byWhere = await dexie.cached.where('surveyId').equals(survey.id).first();
+      return Boolean(byWhere);
+    }, [survey?.id || '']),
+  );
 
   return (
     <Card radius='xl' shadow='md' bg='light-dark(white, var(--mantine-color-dark-6)'>

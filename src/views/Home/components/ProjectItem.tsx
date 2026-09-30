@@ -190,16 +190,19 @@ export function ProjectItem({
             label={`${surveys.length} survey${surveys.length === 1 ? '' : 's'}`}
             variant='dashed'
           />
-          {loading ? (
-            <Stack px='md' py='sm'>
-              <ProjectItemSurvey />
-            </Stack>
-          ) : (
-            <>
-              {surveys.length > 0 ? (
+          {(() => {
+            if (loading) {
+              return (
+                <Stack px='md' py='sm'>
+                  <ProjectItemSurvey />
+                </Stack>
+              );
+            }
+            if (surveys.length > 0) {
+              return (
                 <ScrollArea h={87} type='auto'>
                   <Stack px='md' pt='sm' pb='md' gap='md'>
-                    {surveys.sort((survey) => unpublished?.projectActivity[survey.projectActivityId] ? -1 : 1).map((survey, index) => (
+                    {surveys.sort((survey) => unpublished?.projectActivity[survey.projectActivityId] ? -1 : 1).map((survey) => (
                       <ProjectItemSurvey
                         key={survey.id}
                         survey={survey}
@@ -209,15 +212,16 @@ export function ProjectItem({
                     ))}
                   </Stack>
                 </ScrollArea>
-              ) : (
-                <Center h={85}>
-                  <Text ta='center' size='sm' c='dimmed'>
-                    No surveys available
-                  </Text>
-                </Center>
-              )}
-            </>
-          )}
+              );
+            }
+            return (
+              <Center h={85}>
+                <Text ta='center' size='sm' c='dimmed'>
+                  No surveys available
+                </Text>
+              </Center>
+            );
+          })()}
         </Stack>
       </Paper>
     </Grid.Col>

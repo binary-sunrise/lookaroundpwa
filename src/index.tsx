@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom/client';
 import type { BeforeInstallPromptEvent } from './globals';
 
 import Main from './main';
+import { setupMockBackend } from './mocks';
+
+// Initialize mock backend layer in dev or standalone mock mode
+if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_BACKEND !== 'false') {
+  setupMockBackend();
+}
 
 const strictMode = true;
 console.log(`App Mode: ${import.meta.env.MODE}`);

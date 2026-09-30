@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { defineConfig } from 'vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import babel from '@rolldown/plugin-babel';
@@ -78,15 +80,50 @@ const pwaOptions: Partial<VitePWAOptions> = {
   },
 };
 
+const mockPwaPlugin = {
+  name: 'mock-pwa-routes',
+  configureServer(server: import('vite').ViteDevServer) {
+    server.middlewares.use((req, res, next) => {
+      const rawUrl = req.url || '';
+      const cleanUrl = rawUrl.replace(/^\/(?:mobile-app|lookaroundpwa)/, '').split('?')[0];
+
+      let targetFile: string | null = null;
+      if (cleanUrl === '/pwa/sync' || cleanUrl === '/pwa/sync.html') {
+        targetFile = path.resolve(__dirname, 'public/pwa/sync.html');
+      } else if (
+        cleanUrl.startsWith('/pwa/bioActivity/edit') ||
+        cleanUrl.startsWith('/pwa/bioActivity/view') ||
+        cleanUrl === '/pwa/edit.html'
+      ) {
+        targetFile = path.resolve(__dirname, 'public/pwa/edit.html');
+      } else if (cleanUrl === '/pwa/settings' || cleanUrl === '/pwa/settings.html') {
+        targetFile = path.resolve(__dirname, 'public/pwa/settings.html');
+      } else if (cleanUrl === '/pwa' || cleanUrl === '/pwa/index.html') {
+        targetFile = path.resolve(__dirname, 'public/pwa/index.html');
+      }
+
+      if (targetFile && fs.existsSync(targetFile)) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.end(fs.readFileSync(targetFile));
+        return;
+      }
+
+      next();
+    });
+  },
+};
+
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/mobile-app',
+  base: process.env.BASE_PATH || '/lookaroundpwa/',
   plugins: [
     react(),
     babel({
       presets: [reactCompilerPreset()],
     }),
     VitePWA(pwaOptions),
+    mockPwaPlugin,
   ],
   assetsInclude: ['**/*.lottie'],
   envDir: './config',

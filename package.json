@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host --mode dev",
+    "build": "tsc && vite build && node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "build:dev": "tsc && vite build --mode dev",
     "run:functionaltest": "vite --host --mode functionaltest",
     "build:functionaltest": "tsc && vite build --mode functionaltest",

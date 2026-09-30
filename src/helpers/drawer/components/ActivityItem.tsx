@@ -2,7 +2,7 @@ import { Avatar, Box, Button, Flex, Skeleton, Stack, Text, ThemeIcon, Tooltip } 
 import { IconEye, IconLock, IconPencil, IconTrash, IconUser } from '@tabler/icons-react';
 import { act, useCallback, useContext, useState } from 'react';
 import { FrameContext } from '#/helpers/frame';
-import { getInitials, useOnLine } from '#/helpers/funcs';
+import { getBioCollectUrl, getInitials, useOnLine } from '#/helpers/funcs';
 import { biocollect } from '#/helpers/api';
 import { modals } from '@mantine/modals';
 
@@ -72,7 +72,9 @@ export function ActivityItem({ activity, onDelete, ...rest }: ActivityItemProps)
                   activity &&
                   (() => {
                     frame.open(
-                      `${import.meta.env.VITE_API_BIOCOLLECT}/pwa/bioActivity/index/${activity.projectActivityId}?projectId=${activity.projectId}&activityId=${activity.activityId}`,
+                      getBioCollectUrl(
+                        `/pwa/bioActivity/index/${activity.projectActivityId}?projectId=${activity.projectId}&activityId=${activity.activityId}`,
+                      ),
                       `View Record - ${activity.name}`,
                     );
                   })
@@ -94,10 +96,9 @@ export function ActivityItem({ activity, onDelete, ...rest }: ActivityItemProps)
                 onClick={
                   activity &&
                   (() => {
-                    const editUrl =
-                      `${import.meta.env.VITE_API_BIOCOLLECT}` +
-                      `/pwa/bioActivity/edit/${activity.projectActivityId}` +
-                      `?activityId=${activity.activityId}`;
+                    const editUrl = getBioCollectUrl(
+                      `/pwa/bioActivity/edit/${activity.projectActivityId}?activityId=${activity.activityId}`,
+                    );
                     frame.open(editUrl, `Edit Record - ${activity.name ?? activity.activityId}`);
                   })
                 }

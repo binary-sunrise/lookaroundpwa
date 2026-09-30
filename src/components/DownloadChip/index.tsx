@@ -5,8 +5,8 @@ import { useContext } from 'react';
 import { FrameContext } from '#/helpers/frame';
 
 // Helpers
-import type { BioCollectSurvey } from '#/types';
 import { dexie } from '#/helpers/api/dexie';
+import { getBioCollectUrl } from '#/helpers/funcs';
 
 interface DownloadChipProps extends Omit<ButtonProps, 'children'> {
   survey?: BioCollectSurvey;
@@ -20,7 +20,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
   // Handler for the download popup
   const handleDownload = () =>
     frame.open(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/pwa?projectActivityId=${survey?.projectActivityId}`,
+      getBioCollectUrl(`/pwa?projectActivityId=${survey?.projectActivityId}`),
       `Downloading - ${survey?.name}`,
       {
         confirm: async () => {
@@ -28,6 +28,10 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
             await dexie.cached.put({
               surveyId: survey.id,
               projectId: survey.projectId,
+            });
+            await dexie.surveys.put({
+              ...survey,
+              pwaDownloaded: true,
             });
           }
 
@@ -61,6 +65,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
         },
         onConfirm: async () => {
           await dexie.cached.delete(survey.id);
+          await dexie.cached.where('surveyId').equals(survey.id).delete();
           handleDownload();
         },
       });

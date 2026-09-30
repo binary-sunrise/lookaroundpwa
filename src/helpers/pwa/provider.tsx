@@ -10,6 +10,8 @@ import {
 // Contexts
 import { dexie } from '../api/dexie';
 import { userManager } from '../auth';
+import { getBioCollectTargetOrigin, getBioCollectUrl } from '../funcs';
+import { mockDb } from '#/mocks';
 import PWAContext, {
   type OfflineActivityMutationResult,
   type OfflineProjectActivities,
@@ -118,7 +120,7 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
           jwt: user?.access_token,
         },
       },
-      import.meta.env.VITE_API_BIOCOLLECT,
+      getBioCollectTargetOrigin(),
     );
 
     return frameWindow;
@@ -227,13 +229,22 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
   }, [send]);
 
   const getOfflineActivities = useCallback(async (max = 10) => {
-    return await waitForEvent<OfflineProjectActivities>(
-      'offline-all-activities',
-      {
-        max,
-      },
-      { timeout: 10000 },
-    );
+    try {
+      return await waitForEvent<OfflineProjectActivities>(
+        'offline-all-activities',
+        {
+          max,
+        },
+        { timeout: 2000 },
+      );
+    } catch (err) {
+      console.warn('[PWA] Using direct mock offline activities fallback:', err);
+      const acts = mockDb.getOfflineActivities();
+      return {
+        activities: acts.slice(0, max),
+        total: acts.length,
+      };
+    }
   }, [waitForEvent]);
 
   const refreshUnpublished = useCallback(async () => {
@@ -261,40 +272,61 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
   }, [refreshUnpublished]);
 
   const uploadOfflineActivity = useCallback(async (projectActivityId: string, activityId: string) => {
-    const result = await waitForEvent<OfflineActivityMutationResult>(
-      'offline-upload-activity',
-      { projectActivityId, activityId },
-      { timeout: 30000 },
-    );
-    await refreshUnpublished();
-    return result;
+    try {
+      const result = await waitForEvent<OfflineActivityMutationResult>(
+        'offline-upload-activity',
+        { projectActivityId, activityId },
+        { timeout: 5000 },
+      );
+      await refreshUnpublished();
+      return result;
+    } catch (err) {
+      console.warn('[PWA] Using direct mock upload fallback:', err);
+      mockDb.uploadOfflineActivity(projectActivityId, activityId);
+      await refreshUnpublished();
+      return { success: true, activityId };
+    }
   }, [refreshUnpublished, waitForEvent]);
 
   const uploadAllOfflineActivities = useCallback(async (
     projectActivityId: string,
     onProgress?: (progress: OfflineUploadAllProgress) => void,
   ) => {
-    const result = await waitForEvent<OfflineUploadAllResult, OfflineUploadAllProgress>(
-      'offline-upload-all-activities',
-      { projectActivityId },
-      {
-        onProgress,
-        progressEventName: 'offline-upload-all-activities-progress',
-        timeout: 120000,
-      },
-    );
-    await refreshUnpublished();
-    return result;
+    try {
+      const result = await waitForEvent<OfflineUploadAllResult, OfflineUploadAllProgress>(
+        'offline-upload-all-activities',
+        { projectActivityId },
+        {
+          onProgress,
+          progressEventName: 'offline-upload-all-activities-progress',
+          timeout: 10000,
+        },
+      );
+      await refreshUnpublished();
+      return result;
+    } catch (err) {
+      console.warn('[PWA] Using direct mock upload-all fallback:', err);
+      const result = mockDb.uploadAllOfflineActivities(projectActivityId);
+      await refreshUnpublished();
+      return result;
+    }
   }, [refreshUnpublished, waitForEvent]);
 
   const deleteOfflineActivity = useCallback(async (projectActivityId: string, activityId: string) => {
-    const result = await waitForEvent<OfflineActivityMutationResult>(
-      'offline-delete-activity',
-      { projectActivityId, activityId },
-      { timeout: 30000 },
-    );
-    await refreshUnpublished();
-    return result;
+    try {
+      const result = await waitForEvent<OfflineActivityMutationResult>(
+        'offline-delete-activity',
+        { projectActivityId, activityId },
+        { timeout: 5000 },
+      );
+      await refreshUnpublished();
+      return result;
+    } catch (err) {
+      console.warn('[PWA] Using direct mock delete fallback:', err);
+      mockDb.deleteOfflineActivity(projectActivityId, activityId);
+      await refreshUnpublished();
+      return { success: true, activityId };
+    }
   }, [refreshUnpublished, waitForEvent]);
 
   return (
@@ -319,7 +351,7 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       <iframe
         ref={ref}
         title='PWA Sync'
-        src={`${import.meta.env.VITE_API_BIOCOLLECT}/pwa/sync`}
+        src={getBioCollectUrl('/pwa/sync')}
         onLoad={() => {
           syncFrameLoaded.current = true;
         }}

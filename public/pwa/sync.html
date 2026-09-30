@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BioCollect PWA Sync Bridge</title>
+</head>
+<body>
+  <script>
+    (function() {
+      const STORAGE_KEY = 'biocollect_mock_offline_activities';
+
+      function getOfflineActivities() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [
+          {
+            activityId: "offline-act-001",
+            isInvalidDraft: false,
+            uploadFlag: true,
+            name: "BioBlitz Observation Form",
+            projectActivityId: "pa-001",
+            projectId: "proj-gsb-01",
+            surveyDate: new Date().toISOString(),
+            type: "BioBlitz Observation Form",
+            featureImage: {
+              thumbnailUrl: "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=300&auto=format&fit=crop&q=80"
+            },
+            species: [
+              {
+                name: "Eolophus roseicapilla",
+                commonName: "Galah",
+                scientificName: "Eolophus roseicapilla",
+                outputSpeciesId: "sp-001",
+                guid: "https://bie.ala.org.au/species/urn:lsid:biodiversity.org.au:afd.taxon:eolophus-roseicapilla"
+              }
+            ],
+            transients: {
+              viewActivityUrl: "/pwa/bioActivity/view/offline-act-001",
+              editActivityUrl: "/pwa/bioActivity/edit/pa-001?activityId=offline-act-001"
+            }
+          },
+          {
+            activityId: "offline-act-002",
+            isInvalidDraft: false,
+            uploadFlag: true,
+            name: "Aussie Bird Count Form",
+            projectActivityId: "pa-003",
+            projectId: "proj-abc-02",
+            surveyDate: new Date().toISOString(),
+            type: "Aussie Bird Count Form",
+            featureImage: {
+              thumbnailUrl: "https://images.unsplash.com/photo-1555169062-013468b47731?w=300&auto=format&fit=crop&q=80"
+            },
+            species: [
+              {
+                name: "Malurus cyaneus",
+                commonName: "Superb Fairy-wren",
+                scientificName: "Malurus cyaneus",
+                outputSpeciesId: "sp-002",
+                guid: "https://bie.ala.org.au/species/urn:lsid:biodiversity.org.au:afd.taxon:malurus-cyaneus"
+              }
+            ],
+            transients: {
+              viewActivityUrl: "/pwa/bioActivity/view/offline-act-002",
+              editActivityUrl: "/pwa/bioActivity/edit/pa-003?activityId=offline-act-002"
+            }
+          }
+        ];
+      }
+
+      function saveOfflineActivities(list) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        } catch (e) {}
+      }
+
+      // 1. Post initial storage stats
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          event: 'storage-stats',
+          data: {
+            usage: 1024 * 48,
+            quota: 1024 * 1024 * 50,
+            cleared: false
+          }
+        }, '*');
+      }
+
+      // 2. Listen for messages from PWAProvider
+      window.addEventListener('message', function(event) {
+        const data = event.data;
+        if (!data || !data.requestId || !data.event) return;
+
+        const { event: syncEvent, requestId, payload } = data;
+
+        if (syncEvent === 'offline-all-activities') {
+          const activities = getOfflineActivities();
+          window.parent.postMessage({
+            event: 'offline-all-activities',
+            requestId: requestId,
+            payload: {
+              activities: activities,
+              total: activities.length
+            }
+          }, '*');
+        } else if (syncEvent === 'offline-upload-activity') {
+          const activities = getOfflineActivities();
+          const filtered = activities.filter(a => a.activityId !== payload.activityId);
+          saveOfflineActivities(filtered);
+
+          window.parent.postMessage({
+            event: 'offline-upload-activity',
+            requestId: requestId,
+            payload: {
+              success: true,
+              activityId: payload.activityId
+            }
+          }, '*');
+        } else if (syncEvent === 'offline-upload-all-activities') {
+          const activities = getOfflineActivities();
+          const targetActivities = payload && payload.projectActivityId
+            ? activities.filter(a => a.projectActivityId === payload.projectActivityId)
+            : activities;
+
+          // Send progress updates
+          for (let i = 0; i < targetActivities.length; i++) {
+            window.parent.postMessage({
+              event: 'offline-upload-all-activities-progress',
+              requestId: requestId,
+              payload: {
+                currentActivityId: targetActivities[i].activityId,
+                phase: 'uploading',
+                processed: i + 1,
+                total: targetActivities.length,
+                failed: 0
+              }
+            }, '*');
+          }
+
+          // Filter out uploaded
+          const remaining = activities.filter(a => !targetActivities.some(t => t.activityId === a.activityId));
+          saveOfflineActivities(remaining);
+
+          window.parent.postMessage({
+            event: 'offline-upload-all-activities',
+            requestId: requestId,
+            payload: {
+              processed: targetActivities.length,
+              total: targetActivities.length,
+              failed: 0,
+              failures: []
+            }
+          }, '*');
+        } else if (syncEvent === 'offline-delete-activity') {
+          const activities = getOfflineActivities();
+          const filtered = activities.filter(a => a.activityId !== payload.activityId);
+          saveOfflineActivities(filtered);
+
+          window.parent.postMessage({
+            event: 'offline-delete-activity',
+            requestId: requestId,
+            payload: {
+              success: true,
+              activityId: payload.activityId
+            }
+          }, '*');
+        } else if (syncEvent === 'clear-storage') {
+          localStorage.removeItem(STORAGE_KEY);
+          window.parent.postMessage({
+            event: 'storage-stats',
+            data: {
+              usage: 0,
+              quota: 1024 * 1024 * 50,
+              cleared: true
+            }
+          }, '*');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

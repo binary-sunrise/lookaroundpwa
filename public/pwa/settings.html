@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Storage - BioCollect</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #141517;
+      color: #C1C2C5;
+      margin: 0;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #25262B;
+      border: 1px solid #373A40;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    h2 {
+      margin: 0 0 6px;
+      color: #FFFFFF;
+      font-size: 22px;
+    }
+    .subtitle {
+      margin: 0 0 24px;
+      font-size: 14px;
+      color: #909296;
+    }
+    .stat-box {
+      background: #2C2E33;
+      border: 1px solid #373A40;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #909296;
+    }
+    .stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-danger {
+      background: #FA5252;
+      color: #FFFFFF;
+    }
+    .btn-secondary {
+      background: #373A40;
+      color: #C1C2C5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Offline Storage & Cache</h2>
+    <p class="subtitle">Inspect and manage local storage usage for offline surveys, records, and media.</p>
+
+    <div class="stat-box">
+      <div>
+        <div class="stat-label">Cached Surveys</div>
+        <div class="stat-val" id="cachedCount">Active in IndexedDB</div>
+      </div>
+      <div>
+        <span style="background: rgba(47, 158, 68, 0.2); color: #51CF66; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">Optimal</span>
+      </div>
+    </div>
+
+    <div class="stat-box">
+      <div>
+        <div class="stat-label">Estimated Storage Used</div>
+        <div class="stat-val">~48 KB / 50 MB</div>
+      </div>
+      <div>
+        <span style="background: rgba(34, 139, 230, 0.2); color: #339AF0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">IndexedDB & Local</span>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-danger" id="clearBtn">Clear Offline Cache</button>
+      <button class="btn-secondary" id="closeBtn">Done</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('closeBtn').addEventListener('click', function() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ event: 'close-frame' }, '*');
+      }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      if (confirm('Are you sure you want to clear offline cached surveys?')) {
+        localStorage.removeItem('biocollect_mock_offline_activities');
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ event: 'surveys-removed' }, '*');
+          window.parent.postMessage({ event: 'close-frame' }, '*');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

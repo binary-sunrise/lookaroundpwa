@@ -3,8 +3,7 @@ import { IconEye, IconPlus } from '@tabler/icons-react';
 import { useContext } from 'react';
 import { RecordsDrawerContext } from '#/helpers/drawer';
 import { FrameContext } from '#/helpers/frame';
-// Helpers
-import type { BioCollectSurvey } from '#/types';
+import { getBioCollectUrl } from '#/helpers/funcs';
 
 interface SurveyActionsProps extends FlexProps {
   survey?: BioCollectSurvey;
@@ -47,17 +46,19 @@ export function SurveyActions({ survey, onLine, downloaded, ...rest }: SurveyAct
           onClick={
             survey &&
             (() => {
+              const editUrl = getBioCollectUrl(
+                `/pwa/bioActivity/edit/${survey.projectActivityId}?unpublished=true&projectId=${survey.projectId}&projectActivityId=${survey.projectActivityId}&surveyName=${encodeURIComponent(survey.name)}`,
+              );
               frame.open(
-                `${import.meta.env.VITE_API_BIOCOLLECT}/pwa/bioActivity/edit/${survey.projectActivityId
-                }?unpublished=true`,
+                editUrl,
                 `Add Record - ${survey.name}`,
                 {
                   close: () => {
                     drawer.open(
                       survey,
-                      true
-                    )
-                  }
+                      true,
+                    );
+                  },
                 },
               );
             })
