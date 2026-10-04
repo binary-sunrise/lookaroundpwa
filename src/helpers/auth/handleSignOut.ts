@@ -7,6 +7,6 @@ export async function handleSignOut(): Promise<void> {
     console.error('[Auth] Error during signout:', err);
   }
 
-  const base = (import.meta.env.BASE_URL || '/lookaroundpwa').replace(/\/$/, '');
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   window.location.assign(`${base}/signin`);
 }

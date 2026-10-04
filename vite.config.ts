@@ -162,7 +162,7 @@ const mockPwaPlugin = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.BASE_PATH || '/lookaroundpwa/',
+  base: process.env.BASE_PATH || '/',
   plugins: [
     react(),
     babel({

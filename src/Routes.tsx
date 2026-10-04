@@ -105,7 +105,7 @@ export default function Routes() {
         },
       ],
       {
-        basename: (import.meta.env.BASE_URL || '/lookaroundpwa').replace(/\/$/, '') || '/',
+        basename: (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/',
       },
     ),
   );

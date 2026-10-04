@@ -161,7 +161,7 @@ export function SignIn() {
     try {
       const res = await authClient.signIn.social({
         provider,
-        callbackURL: window.location.origin + (import.meta.env.BASE_URL || '/lookaroundpwa/'),
+        callbackURL: window.location.origin + (import.meta.env.BASE_URL || '/'),
       });
 
       if (res?.error) {
