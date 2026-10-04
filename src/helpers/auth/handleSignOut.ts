@@ -1,7 +1,8 @@
-import { authClient } from './client';
+import { authClient, setStoredToken } from './client';
 
 export async function handleSignOut(): Promise<void> {
   try {
+    setStoredToken(null);
     await authClient.signOut();
   } catch (err) {
     console.error('[Auth] Error during signout:', err);

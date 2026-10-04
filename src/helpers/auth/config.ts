@@ -1,10 +1,19 @@
-import { authClient } from './client';
+import { authClient, getStoredToken } from './client';
 import type { AuthUser, AuthUserProfile } from './types';
 
 export const userManager = {
   async getUser(): Promise<AuthUser | null> {
     try {
-      const result = await authClient.getSession();
+      const token = getStoredToken();
+      const result = await authClient.getSession({
+        fetchOptions: token
+          ? {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          : undefined,
+      });
       if (!result?.data?.user) {
         return null;
       }

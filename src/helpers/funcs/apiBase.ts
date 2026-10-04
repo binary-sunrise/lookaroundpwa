@@ -13,8 +13,12 @@ export function getBioCollectBaseUrl(): string {
  * Constructs a fully qualified or relative URL for BioCollect endpoints.
  */
 export function getBioCollectUrl(path: string): string {
-  const base = getBioCollectBaseUrl();
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  // Local PWA html frames (sync.html, settings.html, edit.html) are static files on the frontend
+  if (cleanPath.startsWith('/pwa/')) {
+    return cleanPath.endsWith('.html') ? cleanPath : `${cleanPath}.html`;
+  }
+  const base = getBioCollectBaseUrl();
   return `${base}${cleanPath}`;
 }
 
@@ -26,5 +30,5 @@ export function getBioCollectTargetOrigin(): string {
   if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_BACKEND !== 'false') {
     return '*';
   }
-  return import.meta.env.VITE_API_BIOCOLLECT || '*';
+  return window.location.origin;
 }

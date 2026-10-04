@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { authClient, useSession } from './client';
+import { authClient, setStoredToken, useSession } from './client';
 import type { AuthUser, AuthUserProfile } from './types';
 
 interface AuthContextType {
@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOutHandler = async () => {
     try {
+      setStoredToken(null);
       await authClient.signOut();
     } catch (err) {
       console.error('[Auth] SignOut error:', err);

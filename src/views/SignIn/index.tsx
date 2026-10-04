@@ -31,7 +31,7 @@ import {
 import { Background } from '#/components';
 import { Logo } from '#/components/Logo';
 import { AssistButtons } from '#/layout/AssistButtons';
-import { useAuth, authClient } from '#/helpers/auth';
+import { useAuth, authClient, setStoredToken } from '#/helpers/auth';
 import splash from '/assets/splash.jpg';
 import classes from './index.module.css';
 
@@ -93,6 +93,8 @@ export function SignIn() {
       if (res.error) {
         setErrorMessage(res.error.message || 'Invalid email or password.');
       } else {
+        const token = (res as any)?.data?.token || (res as any)?.data?.session?.token;
+        if (token) setStoredToken(token);
         await auth.refetch();
         navigate('/', { viewTransition: true });
       }
@@ -119,6 +121,8 @@ export function SignIn() {
       if (res.error) {
         setErrorMessage(res.error.message || 'Could not complete registration.');
       } else {
+        const token = (res as any)?.data?.token || (res as any)?.data?.session?.token;
+        if (token) setStoredToken(token);
         await auth.refetch();
         navigate('/', { viewTransition: true });
       }
@@ -145,6 +149,8 @@ export function SignIn() {
       if (res.error) {
         setErrorMessage(res.error.message || 'Could not sign in with demo account.');
       } else {
+        const token = (res as any)?.data?.token || (res as any)?.data?.session?.token;
+        if (token) setStoredToken(token);
         await auth.refetch();
         navigate('/', { viewTransition: true });
       }
