@@ -12,8 +12,6 @@ import {
   useState,
 } from 'react';
 
-// Contexts
-import { dexie } from '../api/dexie';
 import { userManager } from '../auth';
 import FrameContext, { type FrameCallbacks } from './context';
 import { modals } from '@mantine/modals';
@@ -101,7 +99,7 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
       } else if (data?.event === 'download-removed') {
         setCanConfirm(false);
       } else if (data?.event === 'surveys-removed') {
-        dexie.cached.clear();
+        // Offline cache removed
       } else if (data?.event === 'close-frame') {
         handleClose();
       }

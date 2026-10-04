@@ -21,24 +21,17 @@ import { Logo } from '#/components/Logo';
 import { AssistButtons } from '#/layout/AssistButtons';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { mockDb, loginAsMockUser } from '#/mocks';
-import type { MockUser } from '../../../data';
+
 
 export function SignIn() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const isMockMode = import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_BACKEND !== 'false';
-  const [selectedUser, setSelectedUser] = useState<MockUser>(mockDb.getActiveUser());
 
   // Automatically navigate to the home once signed in
   useEffect(() => {
     if (auth.isAuthenticated) navigate('/', { viewTransition: true });
   }, [auth.isAuthenticated]);
 
-  const handleMockLogin = async (user: MockUser) => {
-    await loginAsMockUser(user);
-    navigate('/', { viewTransition: true });
-  };
 
   return (
     <Background className={classes.background}>
@@ -50,57 +43,7 @@ export function SignIn() {
               <Text fz={28} ff='heading'>Welcome back</Text>
               <Text c='dimmed'>A world of data collection awaits</Text>
 
-              {isMockMode && (
-                <Stack mt='xl' gap='xs'>
-                  <Text size='xs' fw={700} c='dimmed' tt='uppercase'>
-                    Mock User Profiles (Local Standalone Mode)
-                  </Text>
-                  {mockDb.getUsers().map((u) => {
-                    const isSelected = selectedUser.id === u.id;
-                    return (
-                      <Paper
-                        key={u.id}
-                        p='xs'
-                        radius='md'
-                        withBorder
-                        style={{
-                          cursor: 'pointer',
-                          borderColor: isSelected ? 'var(--mantine-color-rust-6)' : undefined,
-                          backgroundColor: isSelected
-                            ? 'rgba(225, 53, 53, 0.08)'
-                            : 'transparent',
-                        }}
-                        onClick={() => {
-                          setSelectedUser(u);
-                          mockDb.setActiveUser(u.id);
-                        }}
-                      >
-                        <Group justify='space-between' align='center'>
-                          <Stack gap={1}>
-                            <Text size='sm' fw={600}>
-                              {u.name}
-                            </Text>
-                            <Text size='xs' c='dimmed'>
-                              {u.role} • {u.organisation}
-                            </Text>
-                          </Stack>
-                          <Button
-                            size='compact-xs'
-                            variant={isSelected ? 'filled' : 'subtle'}
-                            color='rust'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMockLogin(u);
-                            }}
-                          >
-                            Sign In As
-                          </Button>
-                        </Group>
-                      </Paper>
-                    );
-                  })}
-                </Stack>
-              )}
+
             </Stack>
             <Group mt='xl' pb='lg' justify='space-between' align='center'>
               <Button
@@ -109,11 +52,7 @@ export function SignIn() {
                 color='rust'
                 leftSection={<Image width={16} height={16} src={logoAla} />}
                 onClick={() => {
-                  if (isMockMode) {
-                    handleMockLogin(selectedUser);
-                  } else {
-                    auth.signinRedirect();
-                  }
+                  auth.signinRedirect();
                 }}
               >
                 Sign in with ALA
@@ -142,11 +81,7 @@ export function SignIn() {
                   color='rust'
                   leftSection={<Image width={16} height={16} src={logoAla} />}
                   onClick={() => {
-                    if (isMockMode) {
-                      handleMockLogin(selectedUser);
-                    } else {
-                      auth.signinRedirect();
-                    }
+                    auth.signinRedirect();
                   }}
                 >
                   Sign in with ALA

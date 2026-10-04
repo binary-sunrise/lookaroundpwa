@@ -21,8 +21,7 @@ import { biocollect } from '#/helpers/api';
 import type { BioCollectProjectSearch } from '#/types';
 
 // Local components
-import { dexie } from '#/helpers/api/dexie';
-import { useLiveQuery } from 'dexie-react-hooks';
+
 import { useLoaderData } from 'react-router';
 import { HubSwitcher } from './components/HubSwitcher';
 import { ProjectItem } from './components/ProjectItem';
@@ -85,19 +84,8 @@ export function Home() {
   const [hubSwitch, setHubSwitch] = useState<boolean>(false);
   const lastTotal = useRef<number>(null);
 
-  // Watch for changes to the downloaded surveys
-  const downloadedSurveys = useLiveQuery<SurveyDownloads>(async () =>
-    (await dexie.cached.toArray()).reduce(
-      (prev, cur) => ({
-        ...prev,
-        [cur.projectId]: {
-          ...((prev as SurveyDownloads)[cur.projectId] || {}),
-          [cur.surveyId]: true,
-        },
-      }),
-      {},
-    ),
-  );
+  // Mock downloaded surveys state since offline mode is removed
+  const downloadedSurveys: SurveyDownloads = {};
 
   const fetch = useCallback(async () => {
     if (error !== null) {

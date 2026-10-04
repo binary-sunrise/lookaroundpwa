@@ -1,13 +1,10 @@
 import { Badge, Box, Card, Flex, Group, Text, Title } from '@mantine/core';
 import { IconCalendar } from '@tabler/icons-react';
-import { useLiveQuery } from 'dexie-react-hooks';
-
 
 import { DownloadChip, SurveyActions } from '#/components';
-import { dexie } from '#/helpers/api/dexie';
-import { useOnLine } from '#/helpers/funcs';
 import type { BioCollectSurvey } from '#/types';
 import { UnpublishedWrapper } from '#/components/Unpublished';
+import { useOnLine } from '#/helpers/funcs';
 
 interface SurveyCardProps {
   survey: BioCollectSurvey;
@@ -16,15 +13,7 @@ interface SurveyCardProps {
 
 export function SurveyCard({ survey, unpublishedCount }: SurveyCardProps) {
   const onLine = useOnLine();
-  const downloaded = Boolean(
-    useLiveQuery(async () => {
-      if (!survey?.id) return false;
-      const direct = await dexie.cached.get(survey.id);
-      if (direct) return true;
-      const byWhere = await dexie.cached.where('surveyId').equals(survey.id).first();
-      return Boolean(byWhere);
-    }, [survey?.id || '']),
-  );
+  const downloaded = false; // Offline mode removed
 
   return (
     <Card radius='xl' shadow='md' bg='light-dark(white, var(--mantine-color-dark-6)'>

@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { userManager } from '../auth';
-import { dexie } from './dexie';
 import biocollectApi from './endpoints/biocollect';
 
 axios.interceptors.request.use(async (config) => {
@@ -14,4 +13,4 @@ axios.interceptors.request.use(async (config) => {
   return config;
 });
 
-export const biocollect = biocollectApi(dexie);
+export const biocollect = biocollectApi();

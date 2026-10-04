@@ -7,11 +7,8 @@ import {
   useState,
 } from 'react';
 
-// Contexts
-import { dexie } from '../api/dexie';
 import { userManager } from '../auth';
 import { getBioCollectTargetOrigin, getBioCollectUrl } from '../funcs';
-import { mockDb } from '#/mocks';
 import PWAContext, {
   type OfflineActivityMutationResult,
   type OfflineProjectActivities,
@@ -222,7 +219,6 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
     setClearingStorage(true);
 
     // Clear the cached table in the DB
-    dexie.cached.clear();
     setUnpublished(emptyOfflineActivities);
     setUnpublishedError(null);
     setUnpublishedMap(createOfflineActivitiesMap([]));
@@ -232,18 +228,12 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
     try {
       return await waitForEvent<OfflineProjectActivities>(
         'offline-all-activities',
-        {
-          max,
-        },
+        { max },
         { timeout: 2000 },
       );
     } catch (err) {
       console.warn('[PWA] Using direct mock offline activities fallback:', err);
-      const acts = mockDb.getOfflineActivities();
-      return {
-        activities: acts.slice(0, max),
-        total: acts.length,
-      };
+      return { activities: [], total: 0 };
     }
   }, [waitForEvent]);
 
@@ -281,10 +271,8 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       await refreshUnpublished();
       return result;
     } catch (err) {
-      console.warn('[PWA] Using direct mock upload fallback:', err);
-      mockDb.uploadOfflineActivity(projectActivityId, activityId);
-      await refreshUnpublished();
-      return { success: true, activityId };
+      console.warn('[PWA] Offline upload error:', err);
+      return { success: false, activityId };
     }
   }, [refreshUnpublished, waitForEvent]);
 
@@ -305,10 +293,8 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       await refreshUnpublished();
       return result;
     } catch (err) {
-      console.warn('[PWA] Using direct mock upload-all fallback:', err);
-      const result = mockDb.uploadAllOfflineActivities(projectActivityId);
-      await refreshUnpublished();
-      return result;
+      console.warn('[PWA] Offline upload-all error:', err);
+      return { success: false, results: [] };
     }
   }, [refreshUnpublished, waitForEvent]);
 
@@ -322,10 +308,8 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       await refreshUnpublished();
       return result;
     } catch (err) {
-      console.warn('[PWA] Using direct mock delete fallback:', err);
-      mockDb.deleteOfflineActivity(projectActivityId, activityId);
-      await refreshUnpublished();
-      return { success: true, activityId };
+      console.warn('[PWA] Offline delete error:', err);
+      return { success: false, activityId };
     }
   }, [refreshUnpublished, waitForEvent]);
 

@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import { FrameContext } from '#/helpers/frame';
 
 // Helpers
-import { dexie } from '#/helpers/api/dexie';
+
 import { getBioCollectUrl } from '#/helpers/funcs';
 
 interface DownloadChipProps extends Omit<ButtonProps, 'children'> {
@@ -25,14 +25,9 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
       {
         confirm: async () => {
           if (survey) {
-            await dexie.cached.put({
-              surveyId: survey.id,
-              projectId: survey.projectId,
-            });
-            await dexie.surveys.put({
-              ...survey,
-              pwaDownloaded: true,
-            });
+            // Simulated download
+            console.log(`Downloading ${survey.name}...`);
+            await new Promise(resolve => setTimeout(resolve, 500));
           }
 
           frame.close();
@@ -64,8 +59,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
           'data-testid': 'redownload-confirm',
         },
         onConfirm: async () => {
-          await dexie.cached.delete(survey.id);
-          await dexie.cached.where('surveyId').equals(survey.id).delete();
+          console.log(`Re-downloading ${survey.name}...`);
           handleDownload();
         },
       });
