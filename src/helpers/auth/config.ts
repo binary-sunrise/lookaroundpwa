@@ -1,19 +1,53 @@
-import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import { authClient } from './client';
+import type { AuthUser, AuthUserProfile } from './types';
 
-// Use localStorage for user persistence
-export const userStore = new WebStorageStateStore({ store: localStorage });
+export const userManager = {
+  async getUser(): Promise<AuthUser | null> {
+    try {
+      const result = await authClient.getSession();
+      if (!result?.data?.user) {
+        return null;
+      }
 
-export const authConfig = {
-  client_id: import.meta.env.VITE_AUTH_CLIENT_ID,
-  redirect_uri: import.meta.env.VITE_AUTH_REDIRECT_URI,
-  authority: import.meta.env.VITE_AUTH_AUTHORITY,
-  scope: import.meta.env.VITE_AUTH_SCOPE,
-  automaticSilentRenew: false,
-  userStore,
+      const u = result.data.user as any;
+      const nameParts = (u.name || '').trim().split(' ');
+      const given_name = u.givenName || nameParts[0] || '';
+      const family_name = u.familyName || nameParts.slice(1).join(' ') || '';
+
+      const profile: AuthUserProfile = {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        given_name,
+        family_name,
+        role: u.role || 'Researcher',
+        roles: Array.isArray(u.roles) ? u.roles : ['ROLE_USER'],
+        avatar: u.avatar || (given_name[0] || 'U') + (family_name[0] || ''),
+        organisation: u.organisation || '',
+        image: u.image || null,
+      };
+
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        profile,
+        access_token: result.data.session?.token || '',
+        token_type: 'Bearer',
+        expires_at: result.data.session?.expiresAt
+          ? Math.floor(new Date(result.data.session.expiresAt).getTime() / 1000)
+          : undefined,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  async removeUser(): Promise<void> {
+    try {
+      await authClient.signOut();
+    } catch (err) {
+      console.error('[Auth] Error clearing user session:', err);
+    }
+  },
 };
-
-export const userManager = new UserManager(authConfig);
-
-if (import.meta.env.DEV) {
-  console.log('Auth Config', authConfig);
-}

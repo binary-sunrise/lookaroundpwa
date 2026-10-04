@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
-import { AuthProvider } from 'react-oidc-context';
+import { AuthProvider } from '#/helpers/auth';
 
 // Helpers
 import { RecordsDrawerProvider } from '#/helpers/drawer';
@@ -10,10 +10,6 @@ import { theme } from '#/theme';
 
 import App from './App';
 
-// Auth helpers
-import { userManager } from './helpers/auth/config';
-import { handleSignIn } from './helpers/auth/handleSignIn';
-
 // Mantine styles
 import '@mantine/core/styles.css';
 import '@mantine/nprogress/styles.css';
@@ -22,7 +18,7 @@ import '#/styles/view-transitions.css';
 
 function Main() {
   return (
-    <AuthProvider userManager={userManager} onSigninCallback={handleSignIn}>
+    <AuthProvider>
       <MantineProvider theme={theme} defaultColorScheme='dark'>
         <ModalsProvider>
           <PWAProvider>

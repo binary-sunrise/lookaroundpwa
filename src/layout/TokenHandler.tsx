@@ -1,21 +1,13 @@
 import { useCallback, useEffect } from 'react';
-import { useAuth } from 'react-oidc-context';
-
-// Helpers
-import { handleRefresh, handleSignOut } from '#/helpers/auth';
+import { useAuth, handleRefresh, handleSignOut } from '#/helpers/auth';
 import { useOnLine } from '#/helpers/funcs';
 
 export function TokenHandler() {
   const auth = useAuth();
   const onLine = useOnLine();
 
-  console.log(
-    `[Auth] ${auth.isLoading ? 'loading' : 'loaded'} | ${auth.isAuthenticated ? 'authenticated' : 'unauthenticated'}`,
-  );
-
-  // Helper function to try and refresh the auth token
+  // Helper function to check/refresh auth session
   const tryTokenRefresh = useCallback(async (from: string) => {
-    console.log('[Auth] Trying token refresh, triggered by: ', from);
     try {
       await handleRefresh();
     } catch (error) {
@@ -24,30 +16,28 @@ export function TokenHandler() {
     }
   }, []);
 
-  // Update the axios tokens when authenticated
+  // Set up periodic session checks if configured
   useEffect(() => {
-    // Setup a token refresh interval if a valid interval is configured.
     const refreshInterval = Number.parseInt(import.meta.env.VITE_AUTH_TOKEN_REFRESH_INTERVAL, 10);
-    console.log(`[Auth] Valid token refresh interval found, ${refreshInterval / 1000}s`);
-
-    // Setup the refresh interbal
     let refreshHandler: ReturnType<typeof setInterval> | null = null;
 
     if (auth.isAuthenticated) {
       refreshHandler = setInterval(() => {
         tryTokenRefresh('interval hook');
-      }, refreshInterval || 600000);
+      }, refreshInterval || 300000);
     }
 
     return () => {
       if (refreshHandler) clearInterval(refreshHandler);
     };
-  }, [auth]);
+  }, [auth.isAuthenticated, tryTokenRefresh]);
 
-  // Check to check & refresh the authentication (if needed)
+  // Check authentication status when coming back online
   useEffect(() => {
-    tryTokenRefresh('onLine hook');
-  }, [onLine]);
+    if (onLine && auth.isAuthenticated) {
+      tryTokenRefresh('onLine hook');
+    }
+  }, [onLine, auth.isAuthenticated, tryTokenRefresh]);
 
   return null;
 }

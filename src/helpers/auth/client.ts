@@ -1,0 +1,18 @@
+import { createAuthClient } from 'better-auth/react';
+
+export const backendUrl = import.meta.env.VITE_API_BIOCOLLECT || 'http://localhost:3000';
+
+export const authClient = createAuthClient({
+  baseURL: backendUrl,
+  fetchOptions: {
+    credentials: 'include',
+  },
+});
+
+export const {
+  signIn,
+  signUp,
+  signOut,
+  useSession,
+  getSession,
+} = authClient;

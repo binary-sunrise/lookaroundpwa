@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react';
 import { jwtDecode } from 'jwt-decode';
 import { useContext, useMemo } from 'react';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '#/helpers/auth';
 import { Link } from 'react-router';
 
 import { FrameContext } from '#/helpers/frame';
@@ -45,7 +45,12 @@ export function Header() {
   const onLine = useOnLine();
   const isDark = useComputedColorScheme() === 'dark';
   const decoded = useMemo(() => {
-    return auth.user ? jwtDecode(auth.user.access_token) : null;
+    if (!auth.user?.access_token) return null;
+    try {
+      return jwtDecode(auth.user.access_token);
+    } catch {
+      return null;
+    }
   }, [auth.user]);
 
   return (

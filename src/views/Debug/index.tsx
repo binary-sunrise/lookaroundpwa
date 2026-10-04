@@ -1,6 +1,6 @@
 import { Box, Button, Code, Group, Text, Title } from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '#/helpers/auth';
 
 import { handleRefresh } from '#/helpers/auth/handleRefresh';
 

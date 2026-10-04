@@ -41,13 +41,20 @@ export default function Routes() {
                 const user = await userManager.getUser();
                 if (user) {
                   // If the given_name is supplied, return that
-                  if (user.profile.given_name) {
+                  if (user.profile?.given_name) {
                     return user.profile.given_name;
                   }
+                  if (user.name) {
+                    return user.name.split(' ')[0];
+                  }
 
-                  // If not, decode the access token & get it from that
-                  const decoded = jwtDecode(user.access_token);
-                  return (decoded as { given_name: string } | null)?.given_name || 'User';
+                  // If not, try decode access token
+                  try {
+                    const decoded = jwtDecode(user.access_token);
+                    return (decoded as { given_name: string } | null)?.given_name || 'User';
+                  } catch {
+                    return 'User';
+                  }
                 }
 
                 return redirect('/signin');
