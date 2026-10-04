@@ -3,6 +3,22 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/pwa/bioActivity/:path*",
+      "destination": "/pwa/edit.html"
+    },
+    {
+      "source": "/pwa/settings",
+      "destination": "/pwa/settings.html"
+    },
+    {
+      "source": "/pwa/sync",
+      "destination": "/pwa/sync.html"
+    },
+    {
+      "source": "/pwa",
+      "destination": "/pwa/index.html"
+    },
+    {
       "source": "/pwa/:path*",
       "destination": "/pwa/:path*"
     },

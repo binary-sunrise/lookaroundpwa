@@ -4,4 +4,10 @@ export { toQueryString } from './searchParamUtil';
 export { isOnline, useOnLine } from './useOnLine';
 export { useHubId } from './useHub';
 export { getBioCollectBaseUrl, getBioCollectUrl, getBioCollectTargetOrigin } from './apiBase';
-
+export {
+  getDownloadedSurveys,
+  isSurveyDownloaded,
+  markSurveyDownloaded,
+  subscribeDownloadedSurveys,
+  type DownloadedSurveysMap,
+} from './downloadedSurveys';

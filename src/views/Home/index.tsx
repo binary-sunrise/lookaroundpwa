@@ -33,6 +33,8 @@ import { useUnpublished } from '#/helpers/pwa';
 
 const range = (max: number) => (max > 0 ? [...new Array(max).keys()] : []);
 
+import { getDownloadedSurveys, subscribeDownloadedSurveys } from '#/helpers/funcs';
+
 type SurveyDownloads = { [project: string]: { [survey: string]: true } };
 
 function HomeLoading({ max }: { max: number }) {
@@ -84,8 +86,13 @@ export function Home() {
   const [hubSwitch, setHubSwitch] = useState<boolean>(false);
   const lastTotal = useRef<number>(null);
 
-  // Mock downloaded surveys state since offline mode is removed
-  const downloadedSurveys: SurveyDownloads = {};
+  const [downloadedSurveys, setDownloadedSurveys] = useState<SurveyDownloads>(() => getDownloadedSurveys());
+
+  useEffect(() => {
+    return subscribeDownloadedSurveys((updated) => {
+      setDownloadedSurveys(updated);
+    });
+  }, []);
 
   const fetch = useCallback(async () => {
     if (error !== null) {

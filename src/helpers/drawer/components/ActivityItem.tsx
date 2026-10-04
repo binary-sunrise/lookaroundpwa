@@ -71,9 +71,11 @@ export function ActivityItem({ activity, onDelete, ...rest }: ActivityItemProps)
                 onClick={
                   activity &&
                   (() => {
+                    const species = activity.records?.[0]?.commonName || activity.records?.[0]?.name || activity.name;
+                    const count = activity.records?.[0]?.individualCount || 1;
                     frame.open(
                       getBioCollectUrl(
-                        `/pwa/bioActivity/index/${activity.projectActivityId}?projectId=${activity.projectId}&activityId=${activity.activityId}`,
+                        `/pwa/bioActivity/view/${activity.activityId}?projectId=${activity.projectId || ''}&projectActivityId=${activity.projectActivityId}&activityId=${activity.activityId}&surveyName=${encodeURIComponent(activity.name)}&speciesName=${encodeURIComponent(species)}&count=${count}&view=true`,
                       ),
                       `View Record - ${activity.name}`,
                     );
@@ -96,8 +98,10 @@ export function ActivityItem({ activity, onDelete, ...rest }: ActivityItemProps)
                 onClick={
                   activity &&
                   (() => {
+                    const species = activity.records?.[0]?.commonName || activity.records?.[0]?.name || activity.name;
+                    const count = activity.records?.[0]?.individualCount || 1;
                     const editUrl = getBioCollectUrl(
-                      `/pwa/bioActivity/edit/${activity.projectActivityId}?activityId=${activity.activityId}`,
+                      `/pwa/bioActivity/edit/${activity.projectActivityId}?projectId=${activity.projectId || ''}&projectActivityId=${activity.projectActivityId}&activityId=${activity.activityId}&surveyName=${encodeURIComponent(activity.name)}&speciesName=${encodeURIComponent(species)}&count=${count}`,
                     );
                     frame.open(editUrl, `Edit Record - ${activity.name ?? activity.activityId}`);
                   })

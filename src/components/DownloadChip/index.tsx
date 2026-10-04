@@ -6,7 +6,7 @@ import { FrameContext } from '#/helpers/frame';
 
 // Helpers
 
-import { getBioCollectUrl } from '#/helpers/funcs';
+import { getBioCollectUrl, isSurveyDownloaded, markSurveyDownloaded } from '#/helpers/funcs';
 
 interface DownloadChipProps extends Omit<ButtonProps, 'children'> {
   survey?: BioCollectSurvey;
@@ -17,6 +17,9 @@ interface DownloadChipProps extends Omit<ButtonProps, 'children'> {
 export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadChipProps) {
   const frame = useContext(FrameContext);
 
+  const surveyKey = survey?.id || survey?.projectActivityId;
+  const isDownloaded = downloaded ?? (survey ? isSurveyDownloaded(survey.projectId, surveyKey) : false);
+
   // Handler for the download popup
   const handleDownload = () =>
     frame.open(
@@ -24,10 +27,10 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
       `Downloading - ${survey?.name}`,
       {
         confirm: async () => {
-          if (survey) {
-            // Simulated download
+          if (survey && surveyKey) {
             console.log(`Downloading ${survey.name}...`);
             await new Promise(resolve => setTimeout(resolve, 500));
+            markSurveyDownloaded(survey.projectId, surveyKey);
           }
 
           frame.close();
@@ -38,7 +41,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
   // Handler for the chip callback
   const handleChipClick = () => {
     if (!survey) return;
-    if (downloaded) {
+    if (isDownloaded) {
       modals.openConfirmModal({
         title: (
           <Text size='lg' ff='heading'>
@@ -69,7 +72,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
   };
 
   let Icon = IconDownload;
-  if (downloaded) {
+  if (isDownloaded) {
     Icon = IconCheck;
   } else if (!onLine) {
     Icon = IconPlugOff;
@@ -86,7 +89,7 @@ export function DownloadChip({ survey, onLine, downloaded, ...rest }: DownloadCh
       maw={250}
       {...rest}
     >
-      {downloaded ? 'Downloaded' : 'Download'}
+      {isDownloaded ? 'Downloaded' : 'Download'}
     </Button>
   );
 }

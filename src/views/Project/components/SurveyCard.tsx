@@ -4,7 +4,8 @@ import { IconCalendar } from '@tabler/icons-react';
 import { DownloadChip, SurveyActions } from '#/components';
 import type { BioCollectSurvey } from '#/types';
 import { UnpublishedWrapper } from '#/components/Unpublished';
-import { useOnLine } from '#/helpers/funcs';
+import { useEffect, useState } from 'react';
+import { isSurveyDownloaded, subscribeDownloadedSurveys, useOnLine } from '#/helpers/funcs';
 
 interface SurveyCardProps {
   survey: BioCollectSurvey;
@@ -13,7 +14,16 @@ interface SurveyCardProps {
 
 export function SurveyCard({ survey, unpublishedCount }: SurveyCardProps) {
   const onLine = useOnLine();
-  const downloaded = false; // Offline mode removed
+  const surveyKey = survey.id || survey.projectActivityId;
+  const [downloaded, setDownloaded] = useState<boolean>(() =>
+    isSurveyDownloaded(survey.projectId, surveyKey),
+  );
+
+  useEffect(() => {
+    return subscribeDownloadedSurveys(() => {
+      setDownloaded(isSurveyDownloaded(survey.projectId, surveyKey));
+    });
+  }, [survey.projectId, surveyKey]);
 
   return (
     <Card radius='xl' shadow='md' bg='light-dark(white, var(--mantine-color-dark-6)'>

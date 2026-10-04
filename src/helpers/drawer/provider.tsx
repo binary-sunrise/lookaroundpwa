@@ -26,6 +26,7 @@ const RecordsDrawerProvider = (props: PropsWithChildren): ReactElement => {
   const [survey, setSurvey] = useState<BioCollectSurvey | null>(null);
   const [opened, { open: openDrawer, close }] = useDisclosure(false);
   const [initialUnpublished, setInitialUnpublished] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string | null>('published');
   const [publishedRefreshKey, setPublishedRefreshKey] = useState(0);
 
   const theme = useMantineTheme();
@@ -46,13 +47,15 @@ const RecordsDrawerProvider = (props: PropsWithChildren): ReactElement => {
     newSurvey: BioCollectSurvey,
     showUnpublished?: boolean,
   ) => {
-    setSurvey(newSurvey)
+    setSurvey(newSurvey);
 
     const newUnpublishedCount = newSurvey.projectActivityId
       ? unpublishedMap.projectActivity[newSurvey.projectActivityId as string] || 0
       : 0;
 
-    setInitialUnpublished(showUnpublished || newUnpublishedCount > 0);
+    const shouldShowUnpublished = Boolean(showUnpublished || !isOnline || newUnpublishedCount > 0);
+    setInitialUnpublished(shouldShowUnpublished);
+    setActiveTab(shouldShowUnpublished ? 'unpublished' : 'published');
     await refreshAllUnpublished();
 
     openDrawer();
@@ -98,7 +101,8 @@ const RecordsDrawerProvider = (props: PropsWithChildren): ReactElement => {
               </Alert>
             )}
             {survey && (<Tabs
-              defaultValue={!isOnline || initialUnpublished ? 'unpublished' : 'published'}
+              value={activeTab}
+              onChange={setActiveTab}
               radius={0}
             >
               <Tabs.List mb='sm' mx={-16} grow>

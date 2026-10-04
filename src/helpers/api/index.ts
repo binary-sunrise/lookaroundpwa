@@ -1,17 +1,16 @@
-import axios from 'axios';
-import { userManager } from '../auth';
+import { getStoredToken } from '../auth/client';
 import biocollectApi from './endpoints/biocollect';
 
 // Include cookies across requests to backend API
 axios.defaults.withCredentials = true;
 
-axios.interceptors.request.use(async (config) => {
+axios.interceptors.request.use((config) => {
   config.withCredentials = true;
-  const user = await userManager.getUser();
+  const token = getStoredToken();
 
-  // Add the authorization header if the user has an active session token
-  if (user && user.access_token) {
-    config.headers.Authorization = `Bearer ${user.access_token}`;
+  // Add the authorization header if an active session token is present
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
   return config;
