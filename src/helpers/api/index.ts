@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { getStoredToken } from '../auth/client';
 import biocollectApi from './endpoints/biocollect';
 
