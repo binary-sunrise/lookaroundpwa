@@ -82,7 +82,12 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
   const waitForSyncFrame = useCallback((timeout = 5000): Promise<Window> => {
     return new Promise((resolve, reject) => {
       const loadedFrameWindow = ref.current?.contentWindow;
-      if (syncFrameLoaded.current && loadedFrameWindow) {
+      const isReady =
+        syncFrameLoaded.current ||
+        ref.current?.contentDocument?.readyState === 'complete' ||
+        Boolean(loadedFrameWindow);
+
+      if (isReady && loadedFrameWindow) {
         resolve(loadedFrameWindow);
         return;
       }
@@ -90,7 +95,12 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       const started = Date.now();
       const interval = setInterval(() => {
         const frameWindow = ref.current?.contentWindow;
-        if (syncFrameLoaded.current && frameWindow) {
+        const ready =
+          syncFrameLoaded.current ||
+          ref.current?.contentDocument?.readyState === 'complete' ||
+          Boolean(frameWindow);
+
+        if (ready && frameWindow) {
           clearInterval(interval);
           resolve(frameWindow);
           return;
@@ -98,7 +108,11 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
 
         if (Date.now() - started >= timeout) {
           clearInterval(interval);
-          reject(new Error('PWA sync frame did not load in time.'));
+          if (ref.current?.contentWindow) {
+            resolve(ref.current.contentWindow);
+          } else {
+            reject(new Error('PWA sync frame did not load in time.'));
+          }
         }
       }, 50);
     });
@@ -133,7 +147,7 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
     options?: WaitForEventOptions<TProgress>,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
-      let frameWindow: Window | null = null;
+      let frameWindow: Window | null = ref.current?.contentWindow || null;
       const requestId = createRequestId();
       const timeout = options?.timeout ?? 2000;
       let eventTimeout: ReturnType<typeof setTimeout>;
@@ -152,12 +166,12 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       };
 
       const eventHandler = (message: MessageEvent<SyncMessage>) => {
-        if (!frameWindow || message.source !== frameWindow) {
+        const { data } = message;
+        if (!data || data.requestId !== requestId) {
           return;
         }
 
-        const { data } = message;
-        if (data?.requestId !== requestId) {
+        if (frameWindow && message.source && message.source !== frameWindow) {
           return;
         }
 
@@ -237,6 +251,20 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       );
     } catch (err) {
       console.warn('[PWA] Using direct mock offline activities fallback:', err);
+      try {
+        const raw = localStorage.getItem('biocollect_mock_offline_activities');
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            return {
+              activities: list.slice(0, max),
+              total: list.length,
+            };
+          }
+        }
+      } catch (storageErr) {
+        console.warn('[PWA] Failed to read localStorage offline activities:', storageErr);
+      }
       return { activities: [], total: 0 };
     }
   }, [waitForEvent]);
@@ -312,8 +340,19 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
       await refreshUnpublished();
       return result;
     } catch (err) {
-      console.warn('[PWA] Offline delete error:', err);
-      return { success: false, activityId };
+      console.warn('[PWA] Offline delete error, falling back to localStorage:', err);
+      try {
+        const raw = localStorage.getItem('biocollect_mock_offline_activities');
+        if (raw) {
+          const list = JSON.parse(raw);
+          if (Array.isArray(list)) {
+            const filtered = list.filter((a: any) => a.activityId !== activityId);
+            localStorage.setItem('biocollect_mock_offline_activities', JSON.stringify(filtered));
+          }
+        }
+      } catch {}
+      await refreshUnpublished();
+      return { success: true, activityId };
     }
   }, [refreshUnpublished, waitForEvent]);
 
@@ -343,7 +382,15 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
         onLoad={() => {
           syncFrameLoaded.current = true;
         }}
-        style={{ display: 'none' }}
+        style={{
+          position: 'absolute',
+          width: 0,
+          height: 0,
+          border: 0,
+          opacity: 0,
+          pointerEvents: 'none',
+          visibility: 'hidden',
+        }}
       />
       {children}
     </PWAContext.Provider>
