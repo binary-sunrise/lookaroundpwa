@@ -98,7 +98,7 @@ function ProjectBody() {
           <Title order={2}>Surveys</Title>
         </Group>
         <Grid gap='xl'>
-          {surveys.length > 0 ? (
+          {surveys && surveys.length > 0 ? (
             surveys.map((survey) => (
               <Grid.Col key={survey.id} span={{ xs: 12, sm: 12, md: 6, lg: 4, xl: 4 }}>
                 <SurveyCard survey={survey} unpublishedCount={unpublishedMap.projectActivity[survey.projectActivityId]} />
@@ -135,7 +135,7 @@ function ProjectBody() {
                   </Accordion.Panel>
                 </Accordion.Item>
               )}
-              {project.scienceType.length > 0 && (
+              {project.scienceType && project.scienceType.length > 0 && (
                 <Accordion.Item value='scienceType'>
                   <Accordion.Control>
                     <Group align='center'>

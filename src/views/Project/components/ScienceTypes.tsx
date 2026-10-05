@@ -71,9 +71,10 @@ interface ScienceTypesProps {
 }
 
 export function ScienceTypes({ types }: ScienceTypesProps) {
+  const safeTypes = types || [];
   return (
     <Group gap='sm'>
-      {types.map((type) => {
+      {safeTypes.map((type) => {
         const Icon = typeToIcon[type] || IconFlask;
         return (
           <Paper withBorder key={type} py={6} pl={6} pr='sm' radius='xl'>

@@ -109,11 +109,11 @@ export function Header({ project, mobile }: HeaderProps) {
           <Title order={4} c='dimmed' px='sm'>
             {project.organisationName}
           </Title>
-          {(!project.isExternal || project.tags.length > 0) && (
+          {(!project.isExternal || (project.tags && project.tags.length > 0)) && (
             <Group mt='lg' gap='xs' justify='center'>
               {!project.isExternal && <ALABadge />}
               {project.difficulty && <Badge>{project.difficulty} difficulty</Badge>}
-              {project.tags.map((tag) => (
+              {(project.tags || []).map((tag) => (
                 <ProjectTag key={tag} tag={tag} />
               ))}
             </Group>
@@ -132,7 +132,7 @@ export function Header({ project, mobile }: HeaderProps) {
               VIEW WEBSITE
             </Button>
           )}
-          {project.links.length > 0 && (
+          {project.links && project.links.length > 0 && (
             <>
               <Divider mt='xl' mb='lg' variant='dashed' />
               <SocialLinks links={project.links} justify='center' />
@@ -204,11 +204,11 @@ export function Header({ project, mobile }: HeaderProps) {
             </Tooltip>
           )}
         </Flex>
-        {(!project.isExternal || project.tags.length > 0) && (
+        {(!project.isExternal || (project.tags && project.tags.length > 0)) && (
           <Group mt='md' mb='xl' gap='xs'>
             {!project.isExternal && <ALABadge />}
             {project.difficulty && <Badge>{project.difficulty} difficulty</Badge>}
-            {project.tags.map((tag) => (
+            {(project.tags || []).map((tag) => (
               <ProjectTag key={tag} tag={tag} />
             ))}
           </Group>
@@ -226,7 +226,7 @@ export function Header({ project, mobile }: HeaderProps) {
         )}
         <Group mt='xl' justify='space-between' align='flex-start'>
           <TimeSpan start={project.startDate} end={project.endDate} />
-          {project.links.length > 0 && <SocialLinks links={project.links} align='flex-start' />}
+          {project.links && project.links.length > 0 && <SocialLinks links={project.links} align='flex-start' />}
         </Group>
       </Box>
       <Box
