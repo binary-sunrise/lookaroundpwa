@@ -1,6 +1,5 @@
 import { useRef } from 'react';
 import { createBrowserRouter, RouterProvider, redirect } from 'react-router';
-import { jwtDecode } from 'jwt-decode';
 
 // Helpers
 import { Debug, ErrorView, Home, Project, SignIn, Welcome } from '#/views';
@@ -26,7 +25,7 @@ export default function Routes() {
             const user = await userManager.getUser();
             if (user) {
               // If we haven't seen the welcome screen yet, show it
-              if (!localStorage.getItem('pwa-welcome') && import.meta.env.MODE !== 'functionaltest') return redirect('/welcome');
+              if (!localStorage.getItem('pwa-welcome')) return redirect('/welcome');
 
               // Otherwise, stay on the home route
               return null;
@@ -40,21 +39,7 @@ export default function Routes() {
               loader: async () => {
                 const user = await userManager.getUser();
                 if (user) {
-                  // If the given_name is supplied, return that
-                  if (user.profile?.given_name) {
-                    return user.profile.given_name;
-                  }
-                  if (user.name) {
-                    return user.name.split(' ')[0];
-                  }
-
-                  // If not, try decode access token
-                  try {
-                    const decoded = jwtDecode(user.access_token);
-                    return (decoded as { given_name: string } | null)?.given_name || 'User';
-                  } catch {
-                    return 'User';
-                  }
+                  return user.profile?.given_name || (user.name ? user.name.split(' ')[0] : 'User');
                 }
 
                 return redirect('/signin');

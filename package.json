@@ -7,13 +7,9 @@
     "dev": "vite --host --mode dev",
     "build": "tsc && vite build && node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "build:dev": "tsc && vite build --mode dev",
-    "run:functionaltest": "vite --host --mode functionaltest",
-    "build:functionaltest": "tsc && vite build --mode functionaltest",
-    "build:cicd": "./cicd/build.sh",
     "lint": "biome lint ./src",
     "lint:fix": "biome check --write ./src",
-    "preview": "vite preview",
-    "test": "echo \"Tests here...\""
+    "preview": "vite preview"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.19.7",
