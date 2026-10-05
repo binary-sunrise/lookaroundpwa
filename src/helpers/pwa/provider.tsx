@@ -108,17 +108,21 @@ const PWAProvider = ({ children }: PropsWithChildren): ReactElement => {
     const user = await userManager.getUser();
     const frameWindow = await waitForSyncFrame();
 
-    frameWindow.postMessage(
-      {
-        event,
-        requestId,
-        payload: {
-          ...(payload || {}),
-          jwt: user?.access_token,
+    try {
+      frameWindow.postMessage(
+        {
+          event,
+          requestId,
+          payload: {
+            ...(payload || {}),
+            jwt: user?.access_token,
+          },
         },
-      },
-      getBioCollectTargetOrigin(),
-    );
+        getBioCollectTargetOrigin(),
+      );
+    } catch (err) {
+      console.warn('[PWA] Failed to postMessage to sync frame:', err);
+    }
 
     return frameWindow;
   }, [waitForSyncFrame]);

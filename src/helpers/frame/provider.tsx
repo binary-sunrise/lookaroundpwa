@@ -33,20 +33,31 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
   // Callback function to pass user credentials when IFrame has loaded
   const postToken = useCallback(async () => {
     if (frameRef?.current?.contentWindow) {
-      const user = await userManager.getUser();
+      try {
+        const user = await userManager.getUser();
+        let decodedUserId: number | undefined;
 
-      frameRef.current.contentWindow.postMessage(
-        {
-          event: 'credentials',
-          data: {
-            userId:
-              user?.profile['custom:userid'] ||
-              (jwtDecode(user?.access_token || '') as { userid: number })?.userid,
-            token: user?.access_token,
+        if (user?.access_token) {
+          try {
+            decodedUserId = (jwtDecode(user.access_token) as { userid: number })?.userid;
+          } catch {
+            decodedUserId = undefined;
+          }
+        }
+
+        frameRef.current.contentWindow.postMessage(
+          {
+            event: 'credentials',
+            data: {
+              userId: user?.profile?.['custom:userid'] || decodedUserId,
+              token: user?.access_token,
+            },
           },
-        },
-        getBioCollectTargetOrigin(),
-      );
+          getBioCollectTargetOrigin(),
+        );
+      } catch (err) {
+        console.warn('[FrameProvider] Could not post credentials to frame:', err);
+      }
     }
   }, []);
 

@@ -73,11 +73,8 @@ export function getBioCollectUrl(path: string): string {
 
 /**
  * Returns the target origin for postMessage communications with BioCollect iframes.
- * In dev or mock backend mode, returns '*' to ensure cross-origin/local messages are delivered.
+ * Returning '*' ensures messages are successfully delivered even if iframe has an opaque/null origin or in cross-origin embeds.
  */
 export function getBioCollectTargetOrigin(): string {
-  if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_BACKEND !== 'false') {
-    return '*';
-  }
-  return window.location.origin;
+  return '*';
 }
