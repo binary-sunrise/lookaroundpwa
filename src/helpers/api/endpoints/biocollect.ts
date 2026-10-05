@@ -3,6 +3,7 @@ import axios from 'axios';
 // Helpers
 import { toQueryString } from '#/helpers/funcs';
 import type {
+  BioCollectBioActivity,
   BioCollectBioActivitySearch,
   BioCollectBioActivityView,
   BioCollectHub,
@@ -51,7 +52,7 @@ export default () => ({
     sort: BioCollectProjectSort | string = 'dateCreatedSort',
     isUserPage = false,
     search?: string,
-    hasDownloadedSurveys = true,
+    _hasDownloadedSurveys = true,
   ): Promise<BioCollectProjectSearch> => {
     const hubId = getHubId();
 
@@ -145,5 +146,21 @@ export default () => ({
     await axios.delete(
       `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/delete/${activityId}`,
     );
+  },
+
+  createActivity: async (activityData: Partial<BioCollectBioActivity>): Promise<BioCollectBioActivity> => {
+    const { data } = await axios.post<BioCollectBioActivity>(
+      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/create`,
+      activityData,
+    );
+    return data;
+  },
+
+  updateActivity: async (activityId: string, updates: Partial<BioCollectBioActivity>): Promise<BioCollectBioActivity> => {
+    const { data } = await axios.put<BioCollectBioActivity>(
+      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/update/${activityId}`,
+      updates,
+    );
+    return data;
   },
 });
