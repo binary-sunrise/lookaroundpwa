@@ -22,7 +22,7 @@
       "destination": "/pwa/:path*"
     },
     {
-      "source": "/((?!assets/|icon/|registerSW\\.js|sw\\.js|manifest\\.webmanifest|index\\.css|.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/((?!assets/|icon/|pwa/|registerSW\\.js|sw\\.js|manifest\\.webmanifest|index\\.css|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ],
