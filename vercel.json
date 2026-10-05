@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/pwa/bioActivity/:path*",
@@ -23,7 +22,7 @@
       "destination": "/pwa/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|icon/|registerSW\\.js|sw\\.js|manifest\\.webmanifest|index\\.css|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }
   ],

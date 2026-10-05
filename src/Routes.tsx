@@ -21,6 +21,7 @@ export default function Routes() {
           path: '/',
           element: <Layout />,
           errorElement: <ErrorView />,
+          hydrateFallbackElement: null,
           loader: async () => {
             const user = await userManager.getUser();
             if (user) {

@@ -15,6 +15,7 @@ import {
   TextInput,
   Title,
   Tooltip,
+  UnstyledButton,
 } from '@mantine/core';
 import {
   IconAlertCircle,
@@ -384,7 +385,7 @@ export function SignIn() {
               <div className={classes.demoGrid}>
                 {DEMO_ACCOUNTS.map((acc) => (
                   <Tooltip key={acc.email} label={`Sign in as ${acc.name} (${acc.email})`}>
-                    <div
+                    <UnstyledButton
                       className={classes.demoCard}
                       onClick={() => handleQuickLogin(acc.email)}
                     >
@@ -401,7 +402,7 @@ export function SignIn() {
                           </Text>
                         </Box>
                       </Group>
-                    </div>
+                    </UnstyledButton>
                   </Tooltip>
                 ))}
               </div>
