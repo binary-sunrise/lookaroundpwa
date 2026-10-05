@@ -4,6 +4,7 @@ import biocollectApi from './endpoints/biocollect';
 
 // Include cookies across requests to backend API
 axios.defaults.withCredentials = true;
+axios.defaults.timeout = 60000; // 60s timeout to handle Render cold starts gracefully
 
 axios.interceptors.request.use((config) => {
   config.withCredentials = true;

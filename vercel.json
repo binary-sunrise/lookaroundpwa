@@ -22,6 +22,18 @@
       "destination": "/pwa/:path*"
     },
     {
+      "source": "/ws/:path*",
+      "destination": "https://lookaround-backend.onrender.com/ws/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://lookaround-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://lookaround-backend.onrender.com/health"
+    },
+    {
       "source": "/((?!assets/|icon/|pwa/|registerSW\\.js|sw\\.js|manifest\\.webmanifest|index\\.css|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"
     }

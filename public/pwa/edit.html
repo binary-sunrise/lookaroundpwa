@@ -230,7 +230,7 @@
       });
 
       // Form submission
-      document.getElementById('recordForm').addEventListener('submit', function(e) {
+      document.getElementById('recordForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         if (isViewOnly) {
           if (window.parent && window.parent !== window) {
@@ -239,11 +239,15 @@
           return;
         }
 
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving Record...';
+
         const speciesName = document.getElementById('speciesName').value.trim();
         const count = parseInt(document.getElementById('individualCount').value, 10) || 1;
         const date = document.getElementById('surveyDate').value;
         const notes = document.getElementById('notes').value.trim();
-        const actId = existingActivityId || ('offline-act-' + Date.now());
+        const actId = existingActivityId || ('act-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6));
 
         const newActivity = {
           activityId: actId,
@@ -266,31 +270,104 @@
               guid: ''
             }
           ],
+          records: [
+            {
+              name: speciesName,
+              commonName: speciesName,
+              individualCount: count,
+              eventDate: date,
+              notes: notes,
+              multimedia: {
+                imageId: 'img-' + actId
+              }
+            }
+          ],
           transients: {
             viewActivityUrl: '/pwa/bioActivity/view/' + actId,
             editActivityUrl: '/pwa/bioActivity/edit/' + projectActivityId + '?activityId=' + actId
           }
         };
 
-        // Save to localStorage
-        try {
-          const raw = localStorage.getItem('biocollect_mock_offline_activities');
-          let list = raw ? JSON.parse(raw) : [];
-          if (existingActivityId) {
-            list = list.map(function(item) {
-              return item.activityId === existingActivityId ? Object.assign({}, item, newActivity) : item;
+        let createdOnline = false;
+        let finalActivity = newActivity;
+
+        // Attempt direct online write to Neon database if online
+        if (navigator.onLine) {
+          try {
+            const token = localStorage.getItem('lookaround_auth_token');
+            const backendBase = urlParams.get('backendUrl') ||
+              (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : 'https://lookaround-backend.onrender.com');
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+            const res = await fetch(backendBase + '/ws/bioactivity/create', {
+              method: 'POST',
+              headers: headers,
+              body: JSON.stringify({
+                activityId: actId,
+                projectActivityId: projectActivityId,
+                projectId: projectId,
+                name: newActivity.name,
+                type: newActivity.type,
+                status: 'Active',
+                userId: 'user-alex',
+                activityOwnerName: 'Alex Citizen',
+                records: newActivity.records,
+                species: newActivity.species,
+                thumbnailUrl: newActivity.featureImage.thumbnailUrl,
+                lastUpdated: new Date().toISOString()
+              }),
+              credentials: 'include',
+              signal: controller.signal
             });
-          } else {
-            list.unshift(newActivity);
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+              const resData = await res.json();
+              createdOnline = true;
+              finalActivity = Object.assign({}, newActivity, resData);
+              console.log('[Edit] Record successfully written directly to Neon DB:', resData);
+            }
+          } catch (netErr) {
+            console.warn('[Edit] Online persistence failed, saving offline fallback:', netErr);
           }
-          localStorage.setItem('biocollect_mock_offline_activities', JSON.stringify(list));
-        } catch (err) {
-          console.error('Failed to save offline activity:', err);
         }
 
-        // Close the modal frame & open unpublished drawer in parent
+        // If not saved online, store in localStorage offline cache
+        if (!createdOnline) {
+          try {
+            const raw = localStorage.getItem('biocollect_mock_offline_activities');
+            let list = raw ? JSON.parse(raw) : [];
+            if (existingActivityId) {
+              list = list.map(function(item) {
+                return item.activityId === existingActivityId ? Object.assign({}, item, newActivity) : item;
+              });
+            } else {
+              list.unshift(newActivity);
+            }
+            localStorage.setItem('biocollect_mock_offline_activities', JSON.stringify(list));
+          } catch (err) {
+            console.error('Failed to save offline activity:', err);
+          }
+        }
+
+        // Close the modal frame & notify parent
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ event: 'close-frame', data: { newActivity: newActivity } }, '*');
+          window.parent.postMessage({
+            event: 'close-frame',
+            data: {
+              newActivity: finalActivity,
+              createdOnline: createdOnline,
+              projectActivityId: projectActivityId,
+              projectId: projectId
+            }
+          }, '*');
         }
       });
     })();

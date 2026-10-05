@@ -88,8 +88,44 @@
         }, '*');
       }
 
+      async function uploadActivityToBackend(activity, jwtToken) {
+        const token = jwtToken || localStorage.getItem('lookaround_auth_token');
+        const backendBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:3000'
+          : 'https://lookaround-backend.onrender.com';
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        try {
+          const res = await fetch(backendBase + '/ws/bioactivity/create', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              activityId: activity.activityId,
+              projectActivityId: activity.projectActivityId,
+              projectId: activity.projectId,
+              name: activity.name,
+              type: activity.type || 'Observation',
+              status: 'Active',
+              userId: activity.userId || 'user-alex',
+              activityOwnerName: activity.activityOwnerName || 'Alex Citizen',
+              records: activity.records || activity.species || [],
+              species: activity.species || [],
+              thumbnailUrl: activity.featureImage ? activity.featureImage.thumbnailUrl : null,
+              lastUpdated: new Date().toISOString()
+            }),
+            credentials: 'include'
+          });
+          return res.ok;
+        } catch (e) {
+          console.warn('[Sync] Upload to backend failed:', e);
+          return false;
+        }
+      }
+
       // 2. Listen for messages from PWAProvider
-      window.addEventListener('message', function(event) {
+      window.addEventListener('message', async function(event) {
         const data = event.data;
         if (!data || !data.requestId || !data.event) return;
 
@@ -107,6 +143,10 @@
           }, '*');
         } else if (syncEvent === 'offline-upload-activity') {
           const activities = getOfflineActivities();
+          const target = activities.find(a => a.activityId === payload.activityId);
+          if (target) {
+            await uploadActivityToBackend(target, payload?.jwt);
+          }
           const filtered = activities.filter(a => a.activityId !== payload.activityId);
           saveOfflineActivities(filtered);
 
@@ -124,8 +164,9 @@
             ? activities.filter(a => a.projectActivityId === payload.projectActivityId)
             : activities;
 
-          // Send progress updates
+          // Send progress updates and persist each activity to Neon DB
           for (let i = 0; i < targetActivities.length; i++) {
+            await uploadActivityToBackend(targetActivities[i], payload?.jwt);
             window.parent.postMessage({
               event: 'offline-upload-all-activities-progress',
               requestId: requestId,

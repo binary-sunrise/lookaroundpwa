@@ -45,9 +45,12 @@ export function Header() {
   const onLine = useOnLine();
   const isDark = useComputedColorScheme() === 'dark';
   const decoded = useMemo(() => {
-    if (!auth.user?.access_token) return null;
+    const token = auth.user?.access_token;
+    if (!token || typeof token !== 'string') return null;
+    // Better Auth uses opaque session tokens. Only decode if token is a standard 3-part JWT.
+    if (token.split('.').length !== 3) return null;
     try {
-      return jwtDecode(auth.user.access_token);
+      return jwtDecode(token);
     } catch {
       return null;
     }

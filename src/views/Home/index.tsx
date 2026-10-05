@@ -1,10 +1,12 @@
 import { Wave } from '#/components/Wave';
 import {
+  Alert,
   Box,
   Button,
   Center,
   Flex,
   Grid,
+  Loader,
   Pagination,
   Space,
   Stack,
@@ -13,7 +15,7 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
-import { IconArchive, IconFileSad } from '@tabler/icons-react';
+import { IconArchive, IconCloudComputing, IconFileSad, IconRefresh } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Helper functions / components
@@ -81,6 +83,7 @@ export function Home() {
   // API data state
   const [projectSearch, setProjectSearch] = useState<BioCollectProjectSearch | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isColdStarting, setIsColdStarting] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [searchState, setSearchState] = useState<SearchState>(DEFAULTS);
   const [hubSwitch, setHubSwitch] = useState<boolean>(false);
@@ -99,6 +102,10 @@ export function Home() {
       setError(null);
     }
 
+    const coldTimer = setTimeout(() => {
+      setIsColdStarting(true);
+    }, 3500);
+
     try {
       const data = await biocollect.projectSearch(
         (page - 1) * searchState.max,
@@ -109,11 +116,15 @@ export function Home() {
         searchState.offline,
       );
 
+      clearTimeout(coldTimer);
+      setIsColdStarting(false);
       setProjectSearch(data);
 
       // Update the last total ref
       lastTotal.current = data.total;
     } catch (error) {
+      clearTimeout(coldTimer);
+      setIsColdStarting(false);
       setError((error as AxiosError).message);
       console.error('Search error!', error);
     }
@@ -184,14 +195,34 @@ export function Home() {
                 <Text mt='md' ff='heading' size='xl'>
                   Connection Error
                 </Text>
-                <Text c='dimmed'>We can&apos;t reach the ALA servers, please try again later.</Text>
-                <Button mt='lg' onClick={() => setHubSwitch(!hubSwitch)}>
-                  Retry
+                <Text c='dimmed'>
+                  Could not reach the backend service ({error}). The server may be warming up.
+                </Text>
+                <Button mt='lg' onClick={() => fetch()} leftSection={<IconRefresh size='1rem' />}>
+                  Retry Connection
                 </Button>
               </Stack>
             </Grid.Col>
           )}
-          {!projectSearch && !error && <HomeLoading max={searchState.max} />}
+          {!projectSearch && !error && (
+            <>
+              {isColdStarting && (
+                <Grid.Col span={12}>
+                  <Alert
+                    color='orange'
+                    variant='light'
+                    title='Warming up backend server'
+                    icon={<Loader size='xs' color='orange' />}
+                    radius='md'
+                    mb='sm'
+                  >
+                    The cloud API instance is waking up from idle mode on free-tier hosting. Projects will appear automatically in ~15–30 seconds.
+                  </Alert>
+                </Grid.Col>
+              )}
+              <HomeLoading max={searchState.max} />
+            </>
+          )}
         </Grid>
         <Space h={25} />
       </Box>

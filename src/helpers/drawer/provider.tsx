@@ -48,6 +48,7 @@ const RecordsDrawerProvider = (props: PropsWithChildren): ReactElement => {
     showUnpublished?: boolean,
   ) => {
     setSurvey(newSurvey);
+    setPublishedRefreshKey((current) => current + 1);
 
     const newUnpublishedCount = newSurvey.projectActivityId
       ? unpublishedMap.projectActivity[newSurvey.projectActivityId as string] || 0

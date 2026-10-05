@@ -38,7 +38,7 @@ const getCache = ({
 
 const pwaOptions: Partial<VitePWAOptions> = {
   workbox: {
-    navigateFallbackDenylist: [/^\/pwa\//, /^\/pwa/],
+    navigateFallbackDenylist: [/^\/pwa\//, /^\/pwa/, /^\/api\//, /^\/ws\//, /^\/health/],
     runtimeCaching: [
       getCache({
         urlPattern: /^https:\/\/biocollect(-dev|-test|-)*.ala.org.au\/document/,

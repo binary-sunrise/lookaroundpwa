@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Helpers
-import { toQueryString } from '#/helpers/funcs';
+import { toQueryString, getBioCollectBaseUrl } from '#/helpers/funcs';
 import type {
   BioCollectBioActivity,
   BioCollectBioActivitySearch,
@@ -15,6 +15,11 @@ import type {
 
 // Local classes
 import { getHubId } from '#/helpers/funcs/useHub';
+
+const getBaseUrl = () => {
+  const base = getBioCollectBaseUrl();
+  return base || (import.meta.env.PROD ? 'https://lookaround-backend.onrender.com' : 'http://localhost:3000');
+};
 
 const filterActiveSurveys = (surveys: BioCollectSurvey[], userIsProjectMember = false) =>
   surveys?.filter(
@@ -80,7 +85,7 @@ export default () => ({
 
     // Make the GET request
     const { data } = await axios.get<BioCollectProjectSearch>(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/project/search?${params.toString()}`,
+      `${getBaseUrl()}/ws/project/search?${params.toString()}`,
     );
     const formattedSearch = formatProjectSearch(data);
 
@@ -96,7 +101,7 @@ export default () => ({
     try {
       // Make the GET request
       const { data } = await axios.get<BioCollectProject>(
-        `${import.meta.env.VITE_API_BIOCOLLECT}/ws/project/${projectId}`,
+        `${getBaseUrl()}/ws/project/${projectId}`,
       );
 
       return formatProject(data);
@@ -111,7 +116,7 @@ export default () => ({
   ): Promise<BioCollectSurvey[]> => {
     // Make the GET request
     let { data: surveys } = await axios.get<BioCollectSurvey[]>(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/survey/list/${projectId}`,
+      `${getBaseUrl()}/ws/survey/list/${projectId}`,
     );
 
     // Filter out non-active surveys (not within date range)
@@ -124,7 +129,7 @@ export default () => ({
     view: BioCollectBioActivityView,
     filters: FilterQueries = {},
   ): Promise<BioCollectBioActivitySearch> => {
-    const base = `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/search`;
+    const base = `${getBaseUrl()}/ws/bioactivity/search`;
 
     //Transform the FilterQueries object
     const qs = toQueryString({ view, ...filters });
@@ -137,20 +142,20 @@ export default () => ({
 
   listHubs: async (): Promise<BioCollectHub[]> => {
     const { data } = await axios.get<BioCollectHub[]>(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/hub/pwaList`,
+      `${getBaseUrl()}/ws/hub/pwaList`,
     );
     return data;
   },
 
   deleteActivity: async (activityId: string): Promise<void> => {
     await axios.delete(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/delete/${activityId}`,
+      `${getBaseUrl()}/ws/bioactivity/delete/${activityId}`,
     );
   },
 
   createActivity: async (activityData: Partial<BioCollectBioActivity>): Promise<BioCollectBioActivity> => {
     const { data } = await axios.post<BioCollectBioActivity>(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/create`,
+      `${getBaseUrl()}/ws/bioactivity/create`,
       activityData,
     );
     return data;
@@ -158,7 +163,7 @@ export default () => ({
 
   updateActivity: async (activityId: string, updates: Partial<BioCollectBioActivity>): Promise<BioCollectBioActivity> => {
     const { data } = await axios.put<BioCollectBioActivity>(
-      `${import.meta.env.VITE_API_BIOCOLLECT}/ws/bioactivity/update/${activityId}`,
+      `${getBaseUrl()}/ws/bioactivity/update/${activityId}`,
       updates,
     );
     return data;

@@ -1,5 +1,5 @@
 import { Frame } from '#/components';
-import { getBioCollectTargetOrigin, isFrame } from '#/helpers/funcs';
+import { getBioCollectBaseUrl, getBioCollectTargetOrigin, isFrame } from '#/helpers/funcs';
 import { Box, Button, Group, Modal, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { jwtDecode } from 'jwt-decode';
@@ -18,6 +18,7 @@ import { modals } from '@mantine/modals';
 
 interface FrameEvent {
   event: 'download-complete' | 'confirm-download' | 'download-removed' | 'surveys-removed' | 'close-frame';
+  data?: any;
 }
 
 const FrameProvider = (props: PropsWithChildren): ReactElement => {
@@ -37,7 +38,7 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
         const user = await userManager.getUser();
         let decodedUserId: number | undefined;
 
-        if (user?.access_token) {
+        if (user?.access_token && typeof user.access_token === 'string' && user.access_token.split('.').length === 3) {
           try {
             decodedUserId = (jwtDecode(user.access_token) as { userid: number })?.userid;
           } catch {
@@ -49,8 +50,9 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
           {
             event: 'credentials',
             data: {
-              userId: user?.profile?.['custom:userid'] || decodedUserId,
+              userId: user?.profile?.['custom:userid'] || user?.id || decodedUserId,
               token: user?.access_token,
+              baseUrl: getBioCollectBaseUrl(),
             },
           },
           getBioCollectTargetOrigin(),
@@ -77,10 +79,10 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
     openFrame();
   }, []);
 
-  const handleClose = useCallback(() => {
-    // Trigger the close callback
+  const handleClose = useCallback((closeData?: any) => {
+    // Trigger the close callback with returned mutation data
     if (callbacks?.current?.close) {
-      callbacks.current.close();
+      callbacks.current.close(closeData);
     }
 
     setSrc(null);
@@ -89,14 +91,14 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
     callbacks.current = null;
 
     closeFrame();
-  }, []);
+  }, [closeFrame]);
 
   useEffect(() => {
     if (isFrame()) {
       return undefined;
     }
 
-    // Define a message handler to listen for download events
+    // Define a message handler to listen for download and close events
     const messageHandler = (message: MessageEvent<FrameEvent>) => {
       const { data } = message;
 
@@ -112,7 +114,7 @@ const FrameProvider = (props: PropsWithChildren): ReactElement => {
       } else if (data?.event === 'surveys-removed') {
         // Offline cache removed
       } else if (data?.event === 'close-frame') {
-        handleClose();
+        handleClose(data?.data);
       }
     };
 

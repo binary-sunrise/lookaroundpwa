@@ -53,10 +53,13 @@ export function SurveyActions({ survey, onLine, downloaded, ...rest }: SurveyAct
                 editUrl,
                 `Add Record - ${survey.name}`,
                 {
-                  close: () => {
+                  close: (closeData?: any) => {
+                    const isOnlineRecord = closeData?.createdOnline === true;
+                    // If created directly online, open drawer directly to Published tab!
+                    // If offline, open to Unpublished tab!
                     drawer.open(
                       survey,
-                      true,
+                      !isOnlineRecord,
                     );
                   },
                 },

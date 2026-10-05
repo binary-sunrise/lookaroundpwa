@@ -3,10 +3,13 @@
  * In development or mock backend mode, returns an empty string to use local relative routing.
  */
 export function getBioCollectBaseUrl(): string {
-  if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_BACKEND !== 'false') {
+  if (import.meta.env.VITE_USE_MOCK_BACKEND === 'true') {
     return '';
   }
-  return import.meta.env.VITE_API_BIOCOLLECT || '';
+  return (
+    import.meta.env.VITE_API_BIOCOLLECT ||
+    (import.meta.env.PROD ? 'https://lookaround-backend.onrender.com' : 'http://localhost:3000')
+  );
 }
 
 /**

@@ -1,6 +1,8 @@
 import { createAuthClient } from 'better-auth/react';
 
-export const backendUrl = import.meta.env.VITE_API_BIOCOLLECT || 'http://localhost:3000';
+export const backendUrl =
+  import.meta.env.VITE_API_BIOCOLLECT ||
+  (import.meta.env.PROD ? 'https://lookaround-backend.onrender.com' : 'http://localhost:3000');
 
 const TOKEN_KEY = 'lookaround_auth_token';
 
